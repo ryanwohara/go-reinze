@@ -47,10 +47,22 @@ func addInvite(irccon *irc.Connection) {
 	})
 }
 
+func addPlayerCount(irccon *irc.Connection) {
+	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
+		if event.Nick == "Dragon" {
+			if event.Message() == "-players" {
+				irccon.Notice(event.Nick, "There are currently "+getUsersOnline()+" players online.")
+			} else if event.Message() == "+players" {
+				irccon.Privmsgf(event.Arguments[0], "There are currently %s players online.", getUsersOnline())
+			}
+		}
+	})
+}
+
 type binFunc func(irccon *irc.Connection)
 
 func export(irccon *irc.Connection) {
-	available := [2]binFunc{addInvite, addTest}
+	available := []binFunc{addInvite, addTest, addPlayerCount}
 	for a := 0; a < len(available); a++ {
 		available[a](irccon)
 	}

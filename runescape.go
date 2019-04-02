@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -24,8 +23,4 @@ func getUsersOnline() string {
 		players := strings.Split(result, " ")[4]
 		return players
 	}
-}
-
-func main() {
-	fmt.Print(getUsersOnline())
 }
