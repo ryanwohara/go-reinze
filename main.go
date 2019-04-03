@@ -5,14 +5,17 @@ import (
 
 	"crypto/tls"
 
+	"../goreinze/runescape"
 	irc "github.com/thoj/go-ircevent"
 )
 
-const channel = "#go"
+const channel = "#reinze"
 const serverssl = "irc.swiftirc.net:6697"
 
 func main() {
-	ircnick1 := "blatiblat"
+	runescape.Hello()
+	fmt.Println(runescape.GetUsersOnline())
+	ircnick1 := "PiKick"
 	irccon := irc.IRC(ircnick1, "IRCTestSSL")
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
@@ -29,16 +32,6 @@ func main() {
 	irccon.Loop()
 }
 
-func addTest(irccon *irc.Connection) {
-	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
-		if event.Nick == "Dragon" {
-			if event.Message() == "TEST" {
-				irccon.Privmsgf(event.Arguments[0], "Test over SSL successful\n")
-			}
-		}
-	})
-}
-
 func addInvite(irccon *irc.Connection) {
 	irccon.AddCallback("INVITE", func(event *irc.Event) {
 		if event.Nick == "Dragon" {
@@ -47,13 +40,15 @@ func addInvite(irccon *irc.Connection) {
 	})
 }
 
-func addPlayerCount(irccon *irc.Connection) {
+func addPrivmsg(irccon *irc.Connection) {
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		if event.Nick == "Dragon" {
-			if event.Message() == "-players" {
-				irccon.Notice(event.Nick, "There are currently "+getUsersOnline()+" players online.")
+			if event.Message() == "TEST" {
+				irccon.Privmsgf(event.Arguments[0], "Test over SSL successful\n")
+			} else if event.Message() == "-players" {
+				irccon.Notice(event.Nick, "There are currently "+runescape.GetUsersOnline()+" players online.")
 			} else if event.Message() == "+players" {
-				irccon.Privmsgf(event.Arguments[0], "There are currently %s players online.", getUsersOnline())
+				irccon.Privmsgf(event.Arguments[0], "There are currently %s players online.", runescape.GetUsersOnline())
 			}
 		}
 	})
@@ -62,7 +57,7 @@ func addPlayerCount(irccon *irc.Connection) {
 type binFunc func(irccon *irc.Connection)
 
 func export(irccon *irc.Connection) {
-	available := []binFunc{addInvite, addTest, addPlayerCount}
+	available := []binFunc{addInvite, addPrivmsg}
 	for a := 0; a < len(available); a++ {
 		available[a](irccon)
 	}

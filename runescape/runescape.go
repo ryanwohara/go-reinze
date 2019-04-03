@@ -1,11 +1,19 @@
-package main
+package runescape
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 )
+
+// var export = {getUsersOnline,}
+func Hello() {
+	fmt.Println("hello from runescape")
+}
+
+func GetUsersOnline() string { return getUsersOnline() }
 
 func getUsersOnline() string {
 	resp, err := http.Get("https://oldschool.runescape.com/")
