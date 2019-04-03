@@ -13,8 +13,6 @@ const channel = "#reinze"
 const serverssl = "irc.swiftirc.net:6697"
 
 func main() {
-	runescape.Hello()
-	fmt.Println(runescape.GetUsersOnline())
 	ircnick1 := "PiKick"
 	irccon := irc.IRC(ircnick1, "IRCTestSSL")
 	irccon.VerboseCallbackHandler = true
