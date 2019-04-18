@@ -29,3 +29,12 @@ func getUsersOnline() string {
 	players := strings.Split(result, " ")[4]
 	return players
 }
+
+func Matches(message string) string {
+	response := ""
+	if message == "players" {
+		response = "There are currently " + GetUsersOnline() + " players online."
+	}
+
+	return response
+}

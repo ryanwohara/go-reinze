@@ -5,7 +5,7 @@ import (
 
 	"crypto/tls"
 
-	"../goreinze/runescape"
+	"github.com/ryanwohara/reinze/runescape"
 	irc "github.com/thoj/go-ircevent"
 )
 
@@ -21,7 +21,7 @@ func main() {
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
 	irccon.AddCallback("366", func(e *irc.Event) {})
-	export(irccon)
+	exported(irccon)
 	err := irccon.Connect(serverssl)
 	if err != nil {
 		fmt.Printf("Err %s", err)
@@ -41,12 +41,18 @@ func addInvite(irccon *irc.Connection) {
 func addPrivmsg(irccon *irc.Connection) {
 	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
 		if event.Nick == "Dragon" {
-			if event.Message() == "TEST" {
-				irccon.Privmsgf(event.Arguments[0], "Test over SSL successful\n")
-			} else if event.Message() == "-players" {
-				irccon.Notice(event.Nick, "There are currently "+runescape.GetUsersOnline()+" players online.")
-			} else if event.Message() == "+players" {
-				irccon.Privmsgf(event.Arguments[0], "There are currently %s players online.", runescape.GetUsersOnline())
+			msg := event.Message()[1:]
+			input := event.Message()[0]
+
+			output := runescape.Matches(msg)
+
+			if len(output) == 0 {
+				return
+			}
+			if string(input) == "-" {
+				irccon.Notice(event.Nick, output)
+			} else if string(input) == "+" {
+				irccon.Privmsgf(event.Arguments[0], output)
 			}
 		}
 	})
@@ -54,9 +60,13 @@ func addPrivmsg(irccon *irc.Connection) {
 
 type binFunc func(irccon *irc.Connection)
 
-func export(irccon *irc.Connection) {
+func exported(irccon *irc.Connection) {
 	available := []binFunc{addInvite, addPrivmsg}
 	for a := 0; a < len(available); a++ {
-		available[a](irccon)
+		handle(available[a], irccon)
 	}
+}
+
+func handle(function binFunc, irccon *irc.Connection) {
+	function(irccon)
 }
