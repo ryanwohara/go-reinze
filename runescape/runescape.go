@@ -4,7 +4,7 @@ package runescape
 // including the number of users
 // actively on OldSchool RuneScape.
 func GetUsersOnline() string {
-	return getUsersOnline()
+	return "There are currently " + getUsersOnline() + " players online."
 }
 
 // Matches what `runescape`
@@ -13,7 +13,7 @@ func GetUsersOnline() string {
 func Matches(message string) string {
 	response := ""
 	if message == "players" {
-		response = "There are currently " + GetUsersOnline() + " players online."
+		response = GetUsersOnline()
 	}
 
 	return response
