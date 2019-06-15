@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
-
 	"crypto/tls"
-	"os"
-
-	"github.com/ryanwohara/reinze/runescape"
+	"fmt"
 	irc "github.com/thoj/go-ircevent"
+	"os"
 )
 
 const channel = "#reinze"
@@ -15,13 +12,16 @@ const serverssl = "irc.swiftirc.net:6697"
 
 func main() {
 	ircnick1 := "PiKick"
-	irccon := irc.IRC(ircnick1, "IRCTestSSL")
+	irccon := irc.IRC(ircnick1, ircnick1)
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
 	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	irccon.AddCallback("001", func(e *irc.Event) { irccon.Join(channel) })
+	irccon.AddCallback("001", func(e *irc.Event) {
+		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("REINZE_PASS"))
+	})
 	irccon.AddCallback("366", func(e *irc.Event) {})
+	irccon.AddCallback("396", func(e *irc.Event) { irccon.Join(channel) })
 	exported(irccon)
 	err := irccon.Connect(serverssl)
 	if err != nil {
@@ -31,48 +31,10 @@ func main() {
 	irccon.Loop()
 }
 
-func addInvite(irccon *irc.Connection) {
-	irccon.AddCallback("INVITE", func(event *irc.Event) {
-		if event.Nick == "Dragon" {
-			irccon.Join(event.Arguments[1])
-		}
-	})
-}
-
-func addPrivmsg(irccon *irc.Connection) {
-	irccon.AddCallback("PRIVMSG", func(event *irc.Event) {
-		if event.Nick == "Dragon" {
-			msg := event.Message()[1:]
-			input := event.Message()[0]
-
-			output := runescape.Matches(msg)
-
-			if len(output) == 0 {
-				return
-			}
-			if string(input) == "-" {
-				irccon.Notice(event.Nick, output)
-			} else if string(input) == "+" {
-				irccon.Privmsgf(event.Arguments[0], output)
-			}
-		}
-	})
-}
-
-func addNotice(irccon *irc.Connection) {
-	irccon.AddCallback("NOTICE", func(event *irc.Event) {
-		if event.Nick == "NickServ" {
-			if event.Message() == "If you do not change within 20 seconds, I will change your nick." {
-				irccon.Privmsgf("NickServ", "id %s", os.Getenv("REINZE_PASS"))
-			}
-		}
-	})
-}
-
 type binFunc func(irccon *irc.Connection)
 
 func exported(irccon *irc.Connection) {
-	available := []binFunc{addInvite, addPrivmsg}
+	available := []binFunc{addInvite, addPrivmsg, addNotice}
 	for a := 0; a < len(available); a++ {
 		handle(available[a], irccon)
 	}
