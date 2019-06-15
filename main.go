@@ -16,7 +16,7 @@ func main() {
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false} // change to `true` if you really have to
 	irccon.AddCallback("001", func(e *irc.Event) {
 		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("REINZE_PASS"))
 	})
