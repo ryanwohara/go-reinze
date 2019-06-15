@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"crypto/tls"
+	"os"
 
 	"github.com/ryanwohara/reinze/runescape"
 	irc "github.com/thoj/go-ircevent"
@@ -53,6 +54,16 @@ func addPrivmsg(irccon *irc.Connection) {
 				irccon.Notice(event.Nick, output)
 			} else if string(input) == "+" {
 				irccon.Privmsgf(event.Arguments[0], output)
+			}
+		}
+	})
+}
+
+func addNotice(irccon *irc.Connection) {
+	irccon.AddCallback("NOTICE", func(event *irc.Event) {
+		if event.Nick == "NickServ" {
+			if event.Message() == "If you do not change within 20 seconds, I will change your nick." {
+				irccon.Privmsgf("NickServ", "id %s", os.Getenv("REINZE_PASS"))
 			}
 		}
 	})

@@ -2,6 +2,7 @@
 
 set -xe
 
-go fmt *.go
-go build *.go
-./main
+go fmt
+go build
+source .env
+./reinze

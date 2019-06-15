@@ -26,7 +26,7 @@ func getUsersOnline() string {
 	}
 	re := regexp.MustCompile("<p class='player-count'>There are currently ([0-9,]+) people playing!</p>")
 	result := re.FindString(string(body))
-	players := strings.Split(result, " ")[4]
+	players := strings.Fields(result)[4]
 	return players
 }
 
