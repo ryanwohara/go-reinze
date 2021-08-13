@@ -16,7 +16,11 @@ func GetUsersOnline() []string {
 
 	p := message.NewPrinter(language.English)
 
-	return []string{p.Sprintf("There are currently %d OSRS players and %d RS3 players online. (Total: %d)", players[0], players[1], players[2])}
+	message := p.Sprintf("There are currently %d OSRS players (%.2f%%%%) and %d RS3 players (%.2f%%%%) online. (Total: %d) (Total Registered Accounts: %d)", players[0], float64(players[0]) / float64(players[2]) * 100, players[1], float64(players[1]) / float64(players[2]) * 100, players[2], players[3])
+
+	fmt.Println([]string{message})
+
+	return []string{message}
 }
 
 // Matches what `runescape`
