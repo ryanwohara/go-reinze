@@ -5,18 +5,21 @@ import (
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	"os"
+	"time"
 )
 
-const channel = "#reinze"
-const serverssl = "irc.swiftirc.net:6697"
+const channel = "#asdfghj"
+const serverssl = "fiery.swiftirc.net:6697"
 
 func main() {
+    go heartBeat()
+
 	ircnick1 := "PiKick"
 	irccon := irc.IRC(ircnick1, ircnick1)
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false} // change to `true` if you really have to
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: "irc.swiftirc.net"} // change to `true` if you really have to
 	irccon.AddCallback("001", func(e *irc.Event) {
 		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("REINZE_PASS"))
 	})
@@ -42,4 +45,10 @@ func exported(irccon *irc.Connection) {
 
 func handle(function binFunc, irccon *irc.Connection) {
 	function(irccon)
+}
+
+func heartBeat() {
+    for range time.Tick(time.Second * 60) {
+        fmt.Println("Foo")
+    }
 }
