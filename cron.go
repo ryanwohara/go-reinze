@@ -15,9 +15,10 @@ func cronHandler(irccon *irc.Connection) {
 	reddit.CheckPosts(db)
 
 	if time.Now().Minute() == 0 {
-		news := runescape.CheckNews()
-		irccon.SendRawf("TOPIC #rshelp :%s", news)
+		runescape.CheckNews(db, irccon)
 	}
+
+	db.Close()
 
 	return
 }

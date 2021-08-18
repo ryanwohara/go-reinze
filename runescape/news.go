@@ -1,6 +1,7 @@
 package runescape
 
 import (
+	"database/sql"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -8,24 +9,30 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	irc "github.com/thoj/go-ircevent"
 )
 
-func checkNews() string {
-	rs3 := rs3()
-	rs3 = append(rs3, storeNews(rs3[0], rs3[1], "runescape3"))
+func checkNews(db *sql.DB, irccon *irc.Connection) {
+	rs3 := acquireRs3News(db)
+	rs3 = append(rs3, generateHash(rs3), "runescape3")
+	var rs3Exists bool
 
-	osrs := osrs()
-	osrs = append(osrs, storeNews(osrs[0], osrs[1], "oldschool"))
+	osrs := acquireOsrsNews(db)
+	osrs = append(osrs, generateHash(osrs), "oldschool")
+	var osrsExists bool
 
-	return constructTopic(rs3, osrs)
-}
+	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE title = ? AND url = ? AND hash_id = ? AND runescape = ?)", osrs[0], osrs[1], osrs[2], osrs[3]).Scan(&osrsExists)
+	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE title = ? AND url = ? AND hash_id = ? AND runescape = ?)", rs3[0], rs3[1], rs3[2], rs3[3]).Scan(&rs3Exists)
 
-func rs3() []string {
-	return acquireRs3News()
-}
-
-func osrs() []string {
-	return acquireOsrsNews()
+	if osrsExists {
+		writeNewsToDb(osrs)
+	}
+	if rs3Exists {
+		writeNewsToDb(rs3)
+	}
+	if osrsExists && rs3Exists {
+		updateTopic(constructTopic(rs3, osrs), irccon)
+	}
 }
 
 func constructTopic(rs3 []string, osrs []string) string {
@@ -34,7 +41,11 @@ func constructTopic(rs3 []string, osrs []string) string {
 	return message
 }
 
-func acquireRs3News() []string {
+func updateTopic(topic string, irccon *irc.Connection) {
+	irccon.SendRawf("TOPIC #rshelp :%s", topic)
+}
+
+func acquireRs3News(db *sql.DB) []string {
 	res, err := http.Get("https://www.runescape.com/community")
 
 	maybePanic(err)
@@ -60,7 +71,7 @@ func acquireRs3News() []string {
 	return articles[0]
 }
 
-func acquireOsrsNews() []string {
+func acquireOsrsNews(db *sql.DB) []string {
 	res, err := http.Get("https://oldschool.runescape.com")
 
 	maybePanic(err)
@@ -86,9 +97,8 @@ func acquireOsrsNews() []string {
 	return articles[0]
 }
 
-func storeNews(title string, url string, runescape string) string {
-	hash := getHash(title + url)
-	writeNewsToDb(title, url, hash, runescape)
+func generateHash(news []string) string {
+	hash := getHash(news[0] + news[1])
 
 	return hash
 }
@@ -98,19 +108,13 @@ func getHash(url string) string {
 	return hex.EncodeToString(hash[:])[:5]
 }
 
-func writeNewsToDb(title string, url string, hash string, runescape string) {
+func writeNewsToDb(news []string) {
 	db := db()
 
 	db.Ping()
 
-	var exists bool
-
-	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE title = ? AND url = ? AND hash_id = ? AND runescape = ?)", title, url, hash, runescape).Scan(&exists)
-
-	if !exists {
-		_, err := db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", title, url, hash, runescape)
-		maybePanic(err)
-	}
+	_, err := db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
+	maybePanic(err)
 
 	db.Close()
 }
