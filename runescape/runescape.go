@@ -1,9 +1,12 @@
 package runescape
 
 import (
+	"database/sql"
 	"fmt"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+
+	irc "github.com/thoj/go-ircevent"
 )
 
 // GetUsersOnline returns a string
@@ -38,6 +41,6 @@ func Matches(message string) []string {
 // Check OSRS and RS3 news
 // and update the topic of
 // #rshelp appropriately.
-func CheckNews() string {
-	return checkNews()
+func CheckNews(db *sql.DB, irccon *irc.Connection) string {
+	checkNews(db, irccon)
 }
