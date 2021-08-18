@@ -1,23 +1,19 @@
 package runescape
 
 import (
+	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"regexp"
-	"strings"
 	"strconv"
-	"encoding/json"
+	"strings"
 )
 
 type TotalPlayers struct {
-	Accounts int `json:"accounts"`
+	Accounts          int    `json:"accounts"`
 	AccountsFormatted string `json:"accountsformatted"`
-}
-
-func maybePanic(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 func getHttpContent(url string) (string, error) {
@@ -25,9 +21,14 @@ func getHttpContent(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if resp.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", resp.StatusCode, resp.Status)
+		return "", errors.New(strconv.Itoa(resp.StatusCode))
+	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	return string(body), err
+
 }
 
 func getUsersOnline() []int {
