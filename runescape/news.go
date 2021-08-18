@@ -51,7 +51,7 @@ func acquireRs3News() []string {
 	var articles [][]string
 
 	doc.Find("article").Each(func(i int, s *goquery.Selection) {
-		title := strings.Replace(s.Find("h4 a").Text(), "This Week In RuneScape", "TWIR", 1)
+		title := strings.Replace(s.Find("h4 a").Text(), "This Week in RuneScape", "TWIR", 1)
 		link, _ := s.Find("h4 a").Attr("href")
 
 		articles = append(articles, []string{title, link})
