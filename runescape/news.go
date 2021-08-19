@@ -30,7 +30,7 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 	if rs3Exists {
 		writeNewsToDb(rs3)
 	}
-	if osrsExists && rs3Exists {
+	if !osrsExists || !rs3Exists {
 		updateTopic(constructTopic(rs3, osrs), irccon)
 	}
 }
