@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-const channel = "#asdfghj"
-const serverssl = "fiery.swiftirc.net:6697"
+const channel = os.Getenv("IRC_CHANS")
+const serverssl = os.Getenv("IRC_HOST")
 
 func main() {
 	ircnick1 := os.Getenv("IRC_NICK")
