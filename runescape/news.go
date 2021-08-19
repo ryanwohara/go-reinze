@@ -13,11 +13,11 @@ import (
 )
 
 func checkNews(db *sql.DB, irccon *irc.Connection) {
-	rs3 := acquireRs3News(db)
+	rs3 := getNews("https://www.runescape.com/community", "h4 a")
 	rs3 = append(rs3, generateHash(rs3), "runescape3")
 	rs3Exists := queryExists(db, rs3)
 
-	osrs := acquireOsrsNews(db)
+	osrs := getNews("https://oldschool.runescape.com", "h3 a")
 	osrs = append(osrs, generateHash(osrs), "oldschool")
 	osrsExists := queryExists(db, osrs)
 
@@ -58,8 +58,8 @@ func updateTopic(topic string, irccon *irc.Connection) {
 	irccon.SendRawf("TOPIC #rshelp :%s", topic)
 }
 
-func acquireRs3News(db *sql.DB) []string {
-	res, err := http.Get("https://www.runescape.com/community")
+func getNews(url string, element string) []string {
+	res, err := http.Get(url)
 
 	maybePanic(err)
 
@@ -75,34 +75,8 @@ func acquireRs3News(db *sql.DB) []string {
 	var articles [][]string
 
 	doc.Find("article").Each(func(i int, s *goquery.Selection) {
-		title := strings.Replace(s.Find("h4 a").Text(), "This Week in RuneScape", "TWIR", 1)
-		link, _ := s.Find("h4 a").Attr("href")
-
-		articles = append(articles, []string{title, link})
-	})
-
-	return articles[0]
-}
-
-func acquireOsrsNews(db *sql.DB) []string {
-	res, err := http.Get("https://oldschool.runescape.com")
-
-	maybePanic(err)
-
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	maybePanic(err)
-
-	var articles [][]string
-
-	doc.Find("article").Each(func(i int, s *goquery.Selection) {
-		title := strings.Replace(s.Find("h3 a").Text(), "This Week In RuneScape", "TWIR", 1)
-		link, _ := s.Find("h3 a").Attr("href")
+		title := strings.Replace(s.Find(element).Text(), "This Week In RuneScape", "TWIR", 1)
+		link, _ := s.Find(element).Attr("href")
 
 		articles = append(articles, []string{title, link})
 	})
