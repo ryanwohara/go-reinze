@@ -4,7 +4,7 @@ import (
 	"github.com/ryanwohara/reinze/runescape"
 	"github.com/ryanwohara/reinze/social/reddit"
 	irc "github.com/thoj/go-ircevent"
-	"time"
+	// "time"
 )
 
 func cronHandler(irccon *irc.Connection) {
@@ -14,9 +14,9 @@ func cronHandler(irccon *irc.Connection) {
 
 	reddit.CheckPosts(db)
 
-	if time.Now().Minute() == 0 {
+	// if time.Now().Minute() == 0 {
 		runescape.CheckNews(db, irccon)
-	}
+	// }
 
 	db.Close()
 

@@ -39,6 +39,8 @@ func queryExists(db *sql.DB, rs []string) int {
 
 	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE hash_id = ?)", rs[2]).Scan(&exists)
 
+	fmt.Println(exists, rs[2])
+
 	return exists
 }
 
