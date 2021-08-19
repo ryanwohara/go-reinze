@@ -21,8 +21,6 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 	osrs = append(osrs, generateHash(osrs), "oldschool")
 	osrsExists := queryExists(db, osrs)
 
-	fmt.Println(rs3Exists, osrsExists)
-
 	if !osrsExists {
 		writeNewsToDb(db, osrs)
 	}
@@ -37,15 +35,15 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 func queryExists(db *sql.DB, rs []string) bool {
 	var exists string
 
-	rows, err := db.Query("SELECT hash_id FROM `reinze`.`rsnews` WHERE hash_id = '?'", rs[2])
+	rows, err := db.Query("SELECT hash_id FROM `reinze`.`rsnews` WHERE hash_id = ?", rs[2])
 
 	maybePanic(err)
+
+	rows.Next()
 
 	err = rows.Scan(&exists)
 
 	maybePanic(err)
-
-	fmt.Println(exists, rs[2])
 
 	return (exists == rs[2])
 }
