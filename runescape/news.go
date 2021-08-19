@@ -21,19 +21,21 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 	osrs = append(osrs, generateHash(osrs), "oldschool")
 	osrsExists := queryExists(db, osrs)
 
-	if osrsExists {
+	fmt.Println(rs3Exists, osrsExists)
+
+	if osrsExists == 0 {
 		writeNewsToDb(osrs)
 	}
-	if rs3Exists {
+	if rs3Exists == 0 {
 		writeNewsToDb(rs3)
 	}
-	if !osrsExists || !rs3Exists {
+	if osrsExists == 0 || rs3Exists == 0 {
 		updateTopic(constructTopic(rs3, osrs), irccon)
 	}
 }
 
-func queryExists(db *sql.DB, rs []string) bool {
-	var exists bool
+func queryExists(db *sql.DB, rs []string) int {
+	var exists int
 
 	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE hash_id = ?)", rs[2]).Scan(&exists)
 
@@ -47,7 +49,8 @@ func constructTopic(rs3 []string, osrs []string) string {
 }
 
 func updateTopic(topic string, irccon *irc.Connection) {
-	irccon.SendRawf("TOPIC #rshelp :%s", topic)
+	// irccon.SendRawf("TOPIC #rshelp :%s", topic)
+	irccon.SendRawf("PRIVMSG #asdfghj :%s", topic)
 }
 
 func acquireRs3News(db *sql.DB) []string {
