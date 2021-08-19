@@ -15,14 +15,11 @@ import (
 func checkNews(db *sql.DB, irccon *irc.Connection) {
 	rs3 := acquireRs3News(db)
 	rs3 = append(rs3, generateHash(rs3), "runescape3")
-	var rs3Exists bool
+	rs3Exists := queryExists(db, rs3)
 
 	osrs := acquireOsrsNews(db)
 	osrs = append(osrs, generateHash(osrs), "oldschool")
-	var osrsExists bool
-
-	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE title = ? AND url = ? AND hash_id = ? AND runescape = ?)", osrs[0], osrs[1], osrs[2], osrs[3]).Scan(&osrsExists)
-	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE title = ? AND url = ? AND hash_id = ? AND runescape = ?)", rs3[0], rs3[1], rs3[2], rs3[3]).Scan(&rs3Exists)
+	osrsExists := queryExists(db, osrs)
 
 	if osrsExists {
 		writeNewsToDb(osrs)
@@ -33,6 +30,14 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 	if !osrsExists || !rs3Exists {
 		updateTopic(constructTopic(rs3, osrs), irccon)
 	}
+}
+
+func queryExists(db *sql.DB, rs []string) bool {
+	var exists bool
+
+	db.QueryRow("SELECT exists (SELECT hash_id FROM `rsnews` WHERE hash_id = ?)", rs[2]).Scan(&exists)
+
+	return exists
 }
 
 func constructTopic(rs3 []string, osrs []string) string {
