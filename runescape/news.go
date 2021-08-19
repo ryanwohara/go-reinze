@@ -37,7 +37,13 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 func queryExists(db *sql.DB, rs []string) bool {
 	var exists string
 
-	db.QueryRow("SELECT hash_id FROM `rsnews` WHERE hash_id = ?", rs[2]).Scan(&exists)
+	rows, err := db.Query("SELECT hash_id FROM `reinze`.`rsnews` WHERE hash_id = '?'", rs[2])
+
+	maybePanic(err)
+
+	err = rows.Scan(&exists)
+
+	maybePanic(err)
 
 	fmt.Println(exists, rs[2])
 
