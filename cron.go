@@ -18,7 +18,7 @@ func cronHandler(irccon *irc.Connection) {
 		runescape.CheckNews(db, irccon)
 	// }
 
-	db.Close()
+	defer db.Close()
 
 	return
 }

@@ -40,7 +40,6 @@ func checkPosts(db *sql.DB) {
 		}
 
 		fmt.Println("[reddit] Opened database successfully")
-		db.Close()
 	}
 
 	return

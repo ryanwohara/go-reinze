@@ -24,10 +24,10 @@ func checkNews(db *sql.DB, irccon *irc.Connection) {
 	fmt.Println(rs3Exists, osrsExists)
 
 	if !osrsExists {
-		writeNewsToDb(osrs)
+		writeNewsToDb(db, osrs)
 	}
 	if !rs3Exists {
-		writeNewsToDb(rs3)
+		writeNewsToDb(db, rs3)
 	}
 	if !osrsExists || !rs3Exists {
 		updateTopic(constructTopic(rs3, osrs), irccon)
@@ -124,15 +124,10 @@ func getHash(url string) string {
 	return hex.EncodeToString(hash[:])[:5]
 }
 
-func writeNewsToDb(news []string) {
-	db := db()
-
-	db.Ping()
-
+func writeNewsToDb(db *sql.DB, news []string) {
 	_, err := db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
-	maybePanic(err)
 
-	db.Close()
+	maybePanic(err)
 }
 
 type News struct {
