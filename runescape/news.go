@@ -66,7 +66,7 @@ func getNews(url string, element string) []string {
 	var article []string
 
 	doc.Find("article").First().Each(func(i int, s *goquery.Selection) {
-		title := strings.Replace(s.Find(element).Text(), "This Week In RuneScape", "TWIR", 1)
+		title := strings.Replace(s.Find(element).Text(), "This Week in RuneScape", "TWIR", 1)
 		link, _ := s.Find(element).Attr("href")
 
 		article = []string{title, link}
