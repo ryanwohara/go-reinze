@@ -10,14 +10,14 @@ import (
 
 func main() {
 	channels := os.Getenv("IRC_CHANNELS")
-	hostname := os.Getenv("IRC_HOST")
+	hostname := os.Getenv("IRC_HOST") + ":" + os.Getenv("IRC_PORT")
 
 	ircnick1 := os.Getenv("IRC_NICK")
 	irccon := irc.IRC(ircnick1, ircnick1)
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: hostname} // change to `true` if you really have to
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: os.Getenv("IRC_HOST")}
 	irccon.AddCallback("001", func(e *irc.Event) {
 		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("IRC_PASS"))
 	})

@@ -14,38 +14,28 @@ import (
 
 func checkNews(db *sql.DB, irccon *irc.Connection) {
 	rs3 := getNews("https://www.runescape.com/community", "h4 a")
-	rs3 = append(rs3, generateHash(rs3), "runescape3")
 	rs3Exists := queryExists(db, rs3)
-
-	osrs := getNews("https://oldschool.runescape.com", "h3 a")
-	osrs = append(osrs, generateHash(osrs), "oldschool")
-	osrsExists := queryExists(db, osrs)
-
-	if !osrsExists {
-		writeNewsToDb(db, osrs)
-	}
 	if !rs3Exists {
 		writeNewsToDb(db, rs3)
 	}
+
+	osrs := getNews("https://oldschool.runescape.com", "h3 a")
+	osrsExists := queryExists(db, osrs)
+	if !osrsExists {
+		writeNewsToDb(db, osrs)
+	}
+
 	if !osrsExists || !rs3Exists {
 		updateTopic(constructTopic(rs3, osrs), irccon)
 	}
 }
 
 func queryExists(db *sql.DB, rs []string) bool {
-	var exists string
+	var hash_id string
 
-	rows, err := db.Query("SELECT hash_id FROM `reinze`.`rsnews` WHERE hash_id = ?", rs[2])
+	err := db.QueryRow("SELECT hash_id FROM `reinze`.`rsnews` WHERE hash_id = ?", rs[2]).Scan(&hash_id)
 
-	maybePanic(err)
-
-	rows.Next()
-
-	err = rows.Scan(&exists)
-
-	maybePanic(err)
-
-	return (exists == rs[2])
+	return (err == nil)
 }
 
 func constructTopic(rs3 []string, osrs []string) string {
@@ -55,7 +45,8 @@ func constructTopic(rs3 []string, osrs []string) string {
 }
 
 func updateTopic(topic string, irccon *irc.Connection) {
-	irccon.SendRawf("TOPIC #rshelp :%s", topic)
+	// irccon.SendRawf("TOPIC #rshelp :%s", topic)
+	irccon.SendRawf("PRIVMSG #asdfghj :%s", topic)
 }
 
 func getNews(url string, element string) []string {
@@ -72,16 +63,31 @@ func getNews(url string, element string) []string {
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	maybePanic(err)
 
-	var articles [][]string
+	var article []string
 
-	doc.Find("article").Each(func(i int, s *goquery.Selection) {
+	doc.Find("article").First().Each(func(i int, s *goquery.Selection) {
 		title := strings.Replace(s.Find(element).Text(), "This Week In RuneScape", "TWIR", 1)
 		link, _ := s.Find(element).Attr("href")
 
-		articles = append(articles, []string{title, link})
+		article = []string{title, link}
 	})
 
-	return articles[0]
+	version := getVersion(article[1])
+	article = append(article, generateHash(article), version)
+
+	return article
+}
+
+func getVersion(url string) string {
+	var version string
+
+	if strings.Contains(url,  "oldschool") {
+		version = "oldschool"
+	} else {
+		version = "runescape3"
+	}
+
+	return version
 }
 
 func generateHash(news []string) string {
@@ -92,6 +98,7 @@ func generateHash(news []string) string {
 
 func getHash(url string) string {
 	hash := sha256.Sum256([]byte(url))
+
 	return hex.EncodeToString(hash[:])[:5]
 }
 
