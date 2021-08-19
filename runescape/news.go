@@ -45,8 +45,7 @@ func constructTopic(rs3 []string, osrs []string) string {
 }
 
 func updateTopic(topic string, irccon *irc.Connection) {
-	// irccon.SendRawf("TOPIC #rshelp :%s", topic)
-	irccon.SendRawf("PRIVMSG #asdfghj :%s", topic)
+	irccon.SendRawf("TOPIC #rshelp :%s", topic)
 }
 
 func getNews(url string, element string) []string {
