@@ -1,14 +1,15 @@
 package runescape
 
 import (
-	"database/sql"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 	irc "github.com/thoj/go-ircevent"
 )
 
@@ -65,7 +66,7 @@ func getNews(url string, element string) []string {
 	var article []string
 
 	doc.Find("article").First().Each(func(i int, s *goquery.Selection) {
-		title := strings.Replace(s.Find(element).Text(), "This Week in RuneScape", "TWIR", 1)
+		title := strings.Replace(s.Find(element).Text(), "This Week In RuneScape", "TWIR", 1)
 		link, _ := s.Find(element).Attr("href")
 
 		article = []string{title, link}
@@ -80,7 +81,7 @@ func getNews(url string, element string) []string {
 func getVersion(url string) string {
 	var version string
 
-	if strings.Contains(url,  "oldschool") {
+	if strings.Contains(url, "oldschool") {
 		version = "oldschool"
 	} else {
 		version = "runescape3"
@@ -112,4 +113,8 @@ type News struct {
 	Url       string `db:"url" json:"url"`
 	Hash      string `db:"hash_id" json:"hash_id"`
 	Runescape string `db:"runescape" json:"runescape"`
+}
+
+func handleException(err error) {
+	fmt.Println(err)
 }
