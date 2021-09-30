@@ -9,7 +9,7 @@ import (
 )
 
 func db() *sql.DB {
-	db, err := sql.Open("mysql", os.Getenv("MYSQL_USER")+":"+os.Getenv("MYSQL_PASS")+"@/"+os.Getenv("MYSQL_DATABASE")+"?parseTime=true")
+	db, err := sql.Open("mysql", os.Getenv("MYSQL_USER")+":"+os.Getenv("MYSQL_PASS")+"@/"+os.Getenv("MYSQL_DATABASE")+"?parseTime=true&charset=utf8mb4&collation=utf8mb4_0900_ai_ci")
 
 	maybePanic(err)
 
