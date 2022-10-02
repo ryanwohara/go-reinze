@@ -5,25 +5,30 @@ import (
 	"fmt"
 	irc "github.com/thoj/go-ircevent"
 	"os"
+	"time"
 )
 
-const channel = "#reinze"
-const serverssl = "irc.swiftirc.net:6697"
-
 func main() {
-	ircnick1 := "PiKick"
+	channels := os.Getenv("IRC_CHANNELS")
+	hostname := os.Getenv("IRC_HOST") + ":" + os.Getenv("IRC_PORT")
+
+	ircnick1 := os.Getenv("IRC_NICK")
 	irccon := irc.IRC(ircnick1, ircnick1)
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
-	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false} // change to `true` if you really have to
+	irccon.TLSConfig = &tls.Config{InsecureSkipVerify: false, ServerName: os.Getenv("IRC_HOST")}
 	irccon.AddCallback("001", func(e *irc.Event) {
-		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("REINZE_PASS"))
+		irccon.Privmsgf("NickServ", "ID %s", os.Getenv("IRC_PASS"))
 	})
 	irccon.AddCallback("366", func(e *irc.Event) {})
-	irccon.AddCallback("396", func(e *irc.Event) { irccon.Join(channel) })
+	irccon.AddCallback("396", func(e *irc.Event) { irccon.Join(channels) })
+
 	exported(irccon)
-	err := irccon.Connect(serverssl)
+
+	go heartBeat(irccon)
+
+	err := irccon.Connect(hostname)
 	if err != nil {
 		fmt.Printf("Err %s", err)
 		return
@@ -42,4 +47,12 @@ func exported(irccon *irc.Connection) {
 
 func handle(function binFunc, irccon *irc.Connection) {
 	function(irccon)
+}
+
+func heartBeat(irccon *irc.Connection) {
+	for range time.Tick(time.Second * 60) {
+		fmt.Println(time.Now(), "Heartbeat")
+
+		go cronHandler(irccon)
+	}
 }

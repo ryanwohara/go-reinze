@@ -16,10 +16,13 @@ func addPrivmsg(irccon *irc.Connection) {
 			if len(output) == 0 {
 				return
 			}
-			if string(input) == "-" {
-				irccon.Notice(event.Nick, output)
-			} else if string(input) == "+" {
-				irccon.Privmsgf(event.Arguments[0], output)
+
+			for i := 0; i < len(output); i++ {
+				if string(input) == "-" {
+					irccon.Notice(event.Nick, output[i])
+				} else if string(input) == "+" {
+					irccon.Privmsgf(event.Arguments[0], output[i])
+				}
 			}
 		}
 	})
