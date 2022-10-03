@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -11,51 +13,54 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
+type Config struct {
+	Target  string   `json:"target"`
+	Sources []string `json:"sources"`
+}
+
 func CheckNews(db *sql.DB, irccon *irc.Connection) {
-	sources := []string{
-		"https://www.denverpost.com/feed/",
-		"http://rss.slashdot.org/Slashdot/slashdotMain",
-		"https://www.cbc.ca/cmlink/rss-topstories",
-		"https://www.techradar.com/rss",
-		"https://news.yahoo.com/rss",
-		"https://www.majorgeeks.com/files/rss",
-		"http://rss.cnn.com/rss/cnn_topstories.rss",
-		"https://moxie.foxnews.com/google-publisher/latest.xml",
-		"https://wsvn.com/feed/",
-		"https://wgntv.com/feed/",
-		"https://theatlantavoice.com/feed/",
-		"https://nerdist.com/feed/",
-		"https://feeds.skynews.com/feeds/rss/world.xml",
-		"https://www.latimes.com/news/rss2.0.xml",
-		"http://feeds.bbci.co.uk/news/world/rss.xml",
-	}
+	news_config := os.Getenv("NEWS_CONFIG")
 
-	for _, url := range sources {
-		feedparser := rss.NewParser()
-		feed, err := feedparser.ParseURL(url)
+	var struct_config []Config
 
-		if err == nil {
-			for _, item := range feed.Items {
-				if len(item.Link) == 0 {
-					item.Link = item.GUID
+	err := json.Unmarshal([]byte(news_config), &struct_config)
+
+	if err == nil {
+
+		for _, config := range struct_config {
+			target := config.Target
+			sources := config.Sources
+
+			for _, url := range sources {
+				feedparser := rss.NewParser()
+				feed, err := feedparser.ParseURL(url)
+
+				if err == nil {
+					for _, item := range feed.Items {
+						if len(item.Link) == 0 {
+							item.Link = item.GUID
+						}
+
+						news := News{
+							Title: item.Title,
+							Url:   item.Link,
+							Hash:  generateHash(item),
+						}
+
+						processNews(db, irccon, target, feed, news)
+					}
 				}
-
-				news := News{
-					Title: item.Title,
-					Url:   item.Link,
-					Hash:  generateHash(item),
-				}
-
-				processNews(db, irccon, feed, news)
 			}
 		}
+	} else {
+		fmt.Println("news.go: " + err.Error())
 	}
 }
 
-func processNews(db *sql.DB, irccon *irc.Connection, feed *rss.Feed, news News) {
+func processNews(db *sql.DB, irccon *irc.Connection, target string, feed *rss.Feed, news News) {
 	if !queryExists(db, news) {
 		if writeNewsToDb(db, news) {
-			irccon.SendRawf("PRIVMSG %s :[%s] %s [%s]", os.Getenv("NEWS_CHANNEL"), feed.Title, news.Title, news.Url)
+			irccon.SendRawf("PRIVMSG %s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
 			time.Sleep(2 * time.Second)
 		}
 	}

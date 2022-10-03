@@ -51,9 +51,15 @@ func handle(function binFunc, irccon *irc.Connection) {
 }
 
 func heartBeat(irccon *irc.Connection) {
-	for range time.Tick(time.Second * 60) {
-		fmt.Println(time.Now(), "Heartbeat")
+	handleHeartBeat(irccon)
 
-		go cronHandler(irccon)
+	for range time.Tick(time.Second * 60) {
+		handleHeartBeat(irccon)
 	}
+}
+
+func handleHeartBeat(irccon *irc.Connection) {
+	fmt.Println(time.Now(), "Heartbeat")
+
+	go cronHandler(irccon)
 }

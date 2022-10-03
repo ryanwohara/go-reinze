@@ -15,14 +15,14 @@ func cronHandler(irccon *irc.Connection) {
 
 	database.Ping()
 
-	go reddit.CheckPosts(database)
+	reddit.CheckPosts(database)
 
-	go twitter.CheckPosts(database, irccon)
+	twitter.CheckPosts(database, irccon)
 
-	go news.CheckNews(database, irccon)
+	news.CheckNews(database, irccon)
 
 	if time.Now().Minute() == 0 {
-		go runescape.CheckNews(database, irccon)
+		runescape.CheckNews(database, irccon)
 	}
 
 	defer database.Close()
