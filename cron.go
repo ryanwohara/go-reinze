@@ -1,24 +1,28 @@
 package main
 
 import (
+	"time"
+
+	"github.com/ryanwohara/reinze/news"
 	"github.com/ryanwohara/reinze/runescape"
 	"github.com/ryanwohara/reinze/social/reddit"
 	irc "github.com/thoj/go-ircevent"
-	"time"
 )
 
 func cronHandler(irccon *irc.Connection) {
-	db := db()
+	database := db()
 
-	db.Ping()
+	database.Ping()
 
-	reddit.CheckPosts(db)
+	reddit.CheckPosts(database)
+
+	news.CheckNews(database, irccon)
 
 	if time.Now().Minute() == 0 {
-		runescape.CheckNews(db, irccon)
+		runescape.CheckNews(database, irccon)
 	}
 
-	defer db.Close()
+	defer database.Close()
 
 	return
 }

@@ -3,9 +3,10 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	irc "github.com/thoj/go-ircevent"
 	"os"
 	"time"
+
+	irc "github.com/thoj/go-ircevent"
 )
 
 func main() {
