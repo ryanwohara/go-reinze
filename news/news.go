@@ -26,6 +26,7 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 		"https://nerdist.com/feed/",
 		"https://feeds.skynews.com/feeds/rss/world.xml",
 		"https://www.latimes.com/news/rss2.0.xml",
+		"http://feeds.bbci.co.uk/news/world/rss.xml",
 	}
 
 	for _, url := range sources {
