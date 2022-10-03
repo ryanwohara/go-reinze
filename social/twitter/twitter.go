@@ -21,7 +21,6 @@ func CheckPosts(db *sql.DB, irccon *irc.Connection) {
 }
 
 func checkPosts(db *sql.DB, irccon *irc.Connection, source string, destination string) {
-
 	config := &clientcredentials.Config{
 		ClientID:     ConsumerKey,
 		ClientSecret: ConsumerSecret,
@@ -47,7 +46,6 @@ func checkPosts(db *sql.DB, irccon *irc.Connection, source string, destination s
 			}
 		}
 	}
-
 }
 
 func queryExists(db *sql.DB, tweet twitter.Tweet) bool {
