@@ -26,6 +26,4 @@ func cronHandler(irccon *irc.Connection) {
 	}
 
 	defer database.Close()
-
-	return
 }
