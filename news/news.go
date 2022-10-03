@@ -4,14 +4,27 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"time"
 
 	rss "github.com/mmcdole/gofeed"
 	irc "github.com/thoj/go-ircevent"
 )
 
 func CheckNews(db *sql.DB, irccon *irc.Connection) {
-	sources := [1]string{
-		"https://www.denverpost.com/feed/", // https://www.denverpost.com/web-feeds/
+	sources := []string{
+		"https://www.denverpost.com/feed/",
+		"http://rss.slashdot.org/Slashdot/slashdotMain",
+		"https://www.cbc.ca/cmlink/rss-topstories",
+		"https://www.techradar.com/rss",
+		"https://news.yahoo.com/rss",
+		"https://www.majorgeeks.com/files/rss",
+		"http://rss.cnn.com/rss/cnn_topstories.rss",
+		"https://moxie.foxnews.com/google-publisher/latest.xml",
+		"https://wsvn.com/feed/",
+		"https://wgntv.com/feed/",
+		// "https://www.portlandmercury.com/portland/Rss.xml?section=22213/feed", there was no feed title on this one
+		"https://nerdist.com/feed/",
+		"https://feeds.skynews.com/feeds/rss/world.xml",
 	}
 
 	for _, url := range sources {
@@ -35,6 +48,7 @@ func processNews(db *sql.DB, irccon *irc.Connection, feed *rss.Feed, news News) 
 	if !queryExists(db, news) {
 		if writeNewsToDb(db, news) {
 			irccon.SendRawf("PRIVMSG #news :[%s] %s [%s]", feed.Title, news.Title, news.Url)
+			time.Sleep(2 * time.Second)
 		}
 	}
 }
