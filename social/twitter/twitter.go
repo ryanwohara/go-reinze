@@ -41,7 +41,7 @@ func checkPosts(db *sql.DB, irccon *irc.Connection, source string, destination s
 			if !queryExists(db, tweet) {
 				writeTweetToDb(db, tweet)
 
-				irccon.SendRawf("PRIVMSG %s :[stonrus Twitter] %s", destination, tweet.Text)
+				irccon.SendRawf("PRIVMSG %s :[%s Twitter] %s", destination, source, tweet.Text)
 
 				time.Sleep(2 * time.Second)
 			}
