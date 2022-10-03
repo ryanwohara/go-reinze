@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"os"
 	"time"
 
 	rss "github.com/mmcdole/gofeed"
@@ -54,7 +55,7 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 func processNews(db *sql.DB, irccon *irc.Connection, feed *rss.Feed, news News) {
 	if !queryExists(db, news) {
 		if writeNewsToDb(db, news) {
-			irccon.SendRawf("PRIVMSG #news :[%s] %s [%s]", feed.Title, news.Title, news.Url)
+			irccon.SendRawf("PRIVMSG %s :[%s] %s [%s]", os.Getenv("NEWS_CHANNEL"), feed.Title, news.Title, news.Url)
 			time.Sleep(2 * time.Second)
 		}
 	}
