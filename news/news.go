@@ -22,9 +22,10 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 		"https://moxie.foxnews.com/google-publisher/latest.xml",
 		"https://wsvn.com/feed/",
 		"https://wgntv.com/feed/",
-		// "https://www.portlandmercury.com/portland/Rss.xml?section=22213/feed", there was no feed title on this one
+		"https://theatlantavoice.com/feed/",
 		"https://nerdist.com/feed/",
 		"https://feeds.skynews.com/feeds/rss/world.xml",
+		"https://www.latimes.com/news/rss2.0.xml",
 	}
 
 	for _, url := range sources {
