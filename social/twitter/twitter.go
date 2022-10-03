@@ -3,6 +3,8 @@ package twitter
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"os"
 	"time"
 
@@ -16,19 +18,37 @@ var (
 	ConsumerSecret string = os.Getenv("TWITTER_CONSUMER_SECRET")
 )
 
-func CheckPosts(db *sql.DB, irccon *irc.Connection) {
-	checkPosts(db, irccon, "stonrus", "#stonr")
+type Config struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
 }
 
-func checkPosts(db *sql.DB, irccon *irc.Connection, source string, destination string) {
-	config := &clientcredentials.Config{
-		ClientID:     ConsumerKey,
-		ClientSecret: ConsumerSecret,
-		TokenURL:     "https://api.twitter.com/oauth2/token",
-	}
-	httpClient := config.Client(context.Background())
+func CheckPosts(db *sql.DB, irccon *irc.Connection) {
+	twitter_config := os.Getenv("TWITTER_CONFIG")
 
-	client := twitter.NewClient(httpClient)
+	var struct_config []Config
+
+	err := json.Unmarshal([]byte(twitter_config), &struct_config)
+
+	if err == nil {
+		config := &clientcredentials.Config{
+			ClientID:     ConsumerKey,
+			ClientSecret: ConsumerSecret,
+			TokenURL:     "https://api.twitter.com/oauth2/token",
+		}
+		httpClient := config.Client(context.Background())
+
+		client := twitter.NewClient(httpClient)
+
+		for _, config := range struct_config {
+			checkPosts(db, irccon, client, config.Source, config.Target)
+		}
+	} else {
+		fmt.Println("twitter.go err: " + err.Error())
+	}
+}
+
+func checkPosts(db *sql.DB, irccon *irc.Connection, client *twitter.Client, source string, destination string) {
 
 	var params twitter.UserTimelineParams
 	params.ScreenName = source

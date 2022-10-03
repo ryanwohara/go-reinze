@@ -23,6 +23,10 @@ func cronHandler(irccon *irc.Connection) {
 
 	if time.Now().Minute() == 0 {
 		runescape.CheckNews(database, irccon)
+
+		if time.Now().Hour()%4 == 0 {
+			runescape.PriceCheck(irccon)
+		}
 	}
 
 	defer database.Close()

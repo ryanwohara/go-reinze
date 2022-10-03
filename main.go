@@ -40,7 +40,7 @@ func main() {
 type binFunc func(irccon *irc.Connection)
 
 func exported(irccon *irc.Connection) {
-	available := []binFunc{addInvite, addPrivmsg, addNotice}
+	available := []binFunc{addInvite, addJoin, addNotice, addPrivmsg}
 	for a := 0; a < len(available); a++ {
 		handle(available[a], irccon)
 	}
