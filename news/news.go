@@ -33,11 +33,16 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 
 		if err == nil {
 			for _, item := range feed.Items {
+				if len(item.Link) == 0 {
+					item.Link = item.GUID
+				}
+
 				news := News{
 					Title: item.Title,
 					Url:   item.Link,
 					Hash:  generateHash(item),
 				}
+
 				processNews(db, irccon, feed, news)
 			}
 		}
