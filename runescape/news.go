@@ -52,7 +52,9 @@ func updateTopic(topic string, irccon *irc.Connection) {
 func getNews(url string, element string) []string {
 	res, err := http.Get(url)
 
-	maybePanic(err)
+	if err != nil {
+		return []string{}
+	}
 
 	defer res.Body.Close()
 
@@ -61,7 +63,9 @@ func getNews(url string, element string) []string {
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
-	maybePanic(err)
+	if err != nil {
+		return []string{}
+	}
 
 	var article []string
 
@@ -103,9 +107,7 @@ func getHash(url string) string {
 }
 
 func writeNewsToDb(db *sql.DB, news []string) {
-	_, err := db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
-
-	maybePanic(err)
+	db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
 }
 
 type News struct {

@@ -14,11 +14,12 @@ type Row struct {
 }
 
 func checkPosts(db *sql.DB) {
-
 	if db != nil {
 		rows, err := db.Query("select * from `to_post` where `scheduled_at` < now() and `posted_at` is null")
 
-		maybePanic(err)
+		if err != nil {
+			return
+		}
 
 		defer rows.Close()
 
@@ -33,7 +34,10 @@ func checkPosts(db *sql.DB) {
 		}
 
 		err = rows.Close()
-		maybePanic(err)
+
+		if err != nil {
+			return
+		}
 
 		if err = rows.Err(); err != nil {
 			fmt.Println(err)
@@ -41,6 +45,4 @@ func checkPosts(db *sql.DB) {
 
 		fmt.Println("[reddit] Opened database successfully")
 	}
-
-	return
 }
