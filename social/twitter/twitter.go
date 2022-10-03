@@ -17,7 +17,7 @@ var (
 )
 
 func CheckPosts(db *sql.DB, irccon *irc.Connection) {
-	checkPosts(db, irccon, "stonrus", "#asdfghj")
+	checkPosts(db, irccon, "stonrus", "#stonr")
 }
 
 func checkPosts(db *sql.DB, irccon *irc.Connection, source string, destination string) {
