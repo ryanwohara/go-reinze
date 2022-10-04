@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -60,7 +61,11 @@ func checkPosts(db *sql.DB, irccon *irc.Connection, client *twitter.Client, sour
 			if !queryExists(db, tweet) {
 				writeTweetToDb(db, tweet)
 
-				irccon.SendRawf("PRIVMSG %s :[%s Twitter] %s", destination, source, tweet.Text)
+				for _, text := range strings.Split(tweet.Text, "\n") {
+					if len(text) > 0 {
+						irccon.Privmsgf(destination, "[%s Twitter] %s", source, text)
+					}
+				}
 
 				time.Sleep(2 * time.Second)
 			}
