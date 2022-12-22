@@ -89,7 +89,7 @@ func queryExists(db *sql.DB, news News) bool {
 
 	err := db.QueryRow("SELECT hash_id FROM `news` WHERE hash_id = ?", news.Hash).Scan(&hash_id)
 
-	return (err == nil)
+	return (len(hash_id) > 0 || err != nil)
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {

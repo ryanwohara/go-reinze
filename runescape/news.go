@@ -40,7 +40,7 @@ func queryExists(db *sql.DB, rs []string) bool {
 }
 
 func constructTopic(rs3 []string, osrs []string) string {
-	message := fmt.Sprintf("3https://rshelp.com | https://discord.gg/xAVtSdMdhU | RS3: 04%s:04 06https://rshelp.com/t/%s 03| OSRS: 04%s:04 06https://rshelp.com/t/%s", rs3[0], rs3[2], osrs[0], osrs[2])
+	message := fmt.Sprintf("3https://rshelp.com | https://discord.gg/swiftirc | RS3: 04%s:04 06https://rshelp.com/t/%s 03| OSRS: 04%s:04 06https://rshelp.com/t/%s", rs3[0], rs3[2], osrs[0], osrs[2])
 
 	return message
 }
