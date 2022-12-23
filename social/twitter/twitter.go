@@ -78,7 +78,11 @@ func queryExists(db *sql.DB, tweet twitter.Tweet) bool {
 
 	err := db.QueryRow("SELECT tweet_id FROM `twitter` WHERE tweet_id = ?", tweet.ID).Scan(&tweet_id)
 
-	return (len(tweet_id) > 0 || err != nil)
+	if err != nil {
+		fmt.Println("twitter.go err: " + err.Error())
+	}
+
+	return (len(tweet_id) > 0 && err != nil)
 }
 
 func writeTweetToDb(db *sql.DB, tweet twitter.Tweet) bool {
