@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -74,16 +75,23 @@ func checkPosts(db *sql.DB, irccon *irc.Connection, client *twitter.Client, sour
 }
 
 func queryExists(db *sql.DB, tweet twitter.Tweet) bool {
-	var tweet_id string
+	var count string
 
-	err := db.QueryRow("SELECT tweet_id FROM `twitter` WHERE tweet_id = ?", tweet.ID).Scan(&tweet_id)
+	err := db.QueryRow("SELECT COUNT(tweet_id) FROM `twitter` WHERE tweet_id = ?", tweet.ID).Scan(&count)
 
 	if err != nil {
 		fmt.Println("twitter.go err: " + err.Error())
-		return true // we'll return true here to prevent messages being sent to the network
+		return true // we'll return true to prevent messages being sent to the network
 	}
 
-	return (len(tweet_id) > 0)
+	count_int, err := strconv.Atoi(count)
+
+	if err != nil {
+		fmt.Println("twitter.go err: " + err.Error())
+		return true
+	}
+
+	return (count_int > 0)
 }
 
 func writeTweetToDb(db *sql.DB, tweet twitter.Tweet) bool {

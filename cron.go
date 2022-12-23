@@ -13,7 +13,12 @@ import (
 func cronHandler(irccon *irc.Connection) {
 	database := db()
 
-	database.Ping()
+	err := database.Ping()
+	if err != nil {
+		println("cron.go: " + err.Error())
+
+		return
+	}
 
 	reddit.CheckPosts(database)
 

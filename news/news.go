@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	rss "github.com/mmcdole/gofeed"
@@ -85,16 +86,23 @@ type News struct {
 }
 
 func queryExists(db *sql.DB, news News) bool {
-	var hash_id string
+	var count string
 
-	err := db.QueryRow("SELECT hash_id FROM `news` WHERE hash_id = ?", news.Hash).Scan(&hash_id)
+	err := db.QueryRow("SELECT COUNT(hash_id) FROM `news` WHERE hash_id = ?", news.Hash).Scan(&count)
 
 	if err != nil {
 		fmt.Println("news/news.go: " + err.Error())
-		return true // we'll return true here to prevent messages being sent to the network
+		return true // we'll return true to prevent messages being sent to the network
 	}
 
-	return (len(hash_id) > 0)
+	count_int, err := strconv.Atoi(count)
+
+	if err != nil {
+		fmt.Println("news/news.go: " + err.Error())
+		return true
+	}
+
+	return (count_int > 0)
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {
