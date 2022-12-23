@@ -91,9 +91,10 @@ func queryExists(db *sql.DB, news News) bool {
 
 	if err != nil {
 		fmt.Println("news/news.go: " + err.Error())
+		return true // we'll return true here to prevent messages being sent to the network
 	}
 
-	return (len(hash_id) > 0 && err != nil)
+	return (len(hash_id) > 0)
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {

@@ -80,9 +80,10 @@ func queryExists(db *sql.DB, tweet twitter.Tweet) bool {
 
 	if err != nil {
 		fmt.Println("twitter.go err: " + err.Error())
+		return true // we'll return true here to prevent messages being sent to the network
 	}
 
-	return (len(tweet_id) > 0 && err != nil)
+	return (len(tweet_id) > 0)
 }
 
 func writeTweetToDb(db *sql.DB, tweet twitter.Tweet) bool {
