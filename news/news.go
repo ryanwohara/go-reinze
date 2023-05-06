@@ -88,7 +88,7 @@ type News struct {
 func queryExists(db *sql.DB, news News) bool {
 	var count string
 
-	err := db.QueryRow("SELECT COUNT(hash_id) FROM `news` WHERE hash_id = ?", news.Hash).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE url = ?", news.Url).Scan(&count)
 
 	if err != nil {
 		fmt.Println("news/news.go: " + err.Error())
