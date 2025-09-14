@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"database/sql"
 	"fmt"
 	"os"
 	"time"
@@ -63,15 +62,6 @@ func heartBeat(irccon *irc.Connection) {
 func handleHeartBeat(irccon *irc.Connection) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	database := db()
-
-	go runescape.RunscapeCronHandler(irccon, database)
-	go cronHandler(irccon, database)
-
-	defer func(database *sql.DB) {
-		err := database.Close()
-		if err != nil {
-			println("cron.go: " + err.Error())
-		}
-	}(database)
+	go runescape.RunscapeCronHandler(irccon)
+	go cronHandler(irccon)
 }

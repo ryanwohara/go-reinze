@@ -11,19 +11,23 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	irc "github.com/thoj/go-ircevent"
+	db "go-reinze"
 )
 
-func checkNews(db *sql.DB, irccon *irc.Connection) {
+func checkNews(irccon *irc.Connection) {
+
+	database := db.Db()
+
 	rs3 := getNews("https://www.runescape.com/community", "h4 a")
-	rs3Exists := queryExists(db, rs3)
+	rs3Exists := queryExists(database, rs3)
 	if !rs3Exists {
-		writeNewsToDb(db, rs3)
+		writeNewsToDb(database, rs3)
 	}
 
 	osrs := getNews("https://oldschool.runescape.com", "h3 a")
-	osrsExists := queryExists(db, osrs)
+	osrsExists := queryExists(database, osrs)
 	if !osrsExists {
-		writeNewsToDb(db, osrs)
+		writeNewsToDb(database, osrs)
 	}
 
 	if !osrsExists || !rs3Exists {
