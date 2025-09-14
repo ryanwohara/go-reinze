@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"go-reinze/runescape"
 	"os"
 	"time"
 
@@ -61,6 +62,6 @@ func heartBeat(irccon *irc.Connection) {
 func handleHeartBeat(irccon *irc.Connection) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	//go runescape.RunscapeCronHandler(irccon, Db())
+	go runescape.RunscapeCronHandler(irccon, Db())
 	cronHandler(irccon, Db())
 }
