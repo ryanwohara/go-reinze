@@ -1,5 +1,2 @@
 .env
-go.mod
-go.sum
 reinze
-!.env.example
