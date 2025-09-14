@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strconv"
 	"time"
@@ -62,7 +63,8 @@ func processNews(db *sql.DB, irccon *irc.Connection, target string, feed *rss.Fe
 	if !queryExists(db, news) {
 		if writeNewsToDb(db, news) {
 			irccon.SendRawf("PRIVMSG %s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
-			time.Sleep(2 * time.Second)
+			num := rand.IntN(1) + 1
+			time.Sleep(time.Duration(num) * time.Second)
 		}
 	}
 }
