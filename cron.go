@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/ryanwohara/reinze/news"
@@ -8,8 +9,8 @@ import (
 )
 
 func cronHandler(irccon *irc.Connection, database *sql.DB) {
-	err := database.Ping()
-	if err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	if err := database.PingContext(ctx); err != nil {
 		println("cron.go: " + err.Error())
 
 		return
@@ -17,10 +18,5 @@ func cronHandler(irccon *irc.Connection, database *sql.DB) {
 
 	news.CheckNews(database, irccon)
 
-	defer func(database *sql.DB) {
-		err := database.Close()
-		if err != nil {
-			println("cron.go: " + err.Error())
-		}
-	}(database)
+	defer cancel()
 }
