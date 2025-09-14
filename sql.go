@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func Db() *sql.DB {

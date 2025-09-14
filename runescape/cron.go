@@ -15,11 +15,4 @@ func RunscapeCronHandler(irccon *irc.Connection, database *sql.DB) {
 
 		CheckNews(irccon, database)
 	}
-
-	defer func(database *sql.DB) {
-		err := database.Close()
-		if err != nil {
-			println("runescape/cron.go: " + err.Error())
-		}
-	}(database)
 }

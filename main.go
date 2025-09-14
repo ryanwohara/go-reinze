@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ryanwohara/reinze/runescape"
 	irc "github.com/thoj/go-ircevent"
 )
 
@@ -62,8 +61,6 @@ func heartBeat(irccon *irc.Connection) {
 func handleHeartBeat(irccon *irc.Connection) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	database := Db()
-
-	go runescape.RunscapeCronHandler(irccon, database)
-	go cronHandler(irccon)
+	//go runescape.RunscapeCronHandler(irccon, Db())
+	go cronHandler(irccon, Db())
 }

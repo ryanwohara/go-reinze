@@ -7,11 +7,8 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
-func cronHandler(irccon *irc.Connection) {
-	database := Db()
-
+func cronHandler(irccon *irc.Connection, database *sql.DB) {
 	err := database.Ping()
-
 	if err != nil {
 		println("cron.go: " + err.Error())
 
