@@ -19,7 +19,7 @@ func RunscapeCronHandler(irccon *irc.Connection, database *sql.DB) {
 	defer func(database *sql.DB) {
 		err := database.Close()
 		if err != nil {
-			println("cron.go: " + err.Error())
+			println("runescape/cron.go: " + err.Error())
 		}
 	}(database)
 }
