@@ -29,5 +29,7 @@ func Db() *sql.DB {
 	database.SetMaxOpenConns(10)
 	database.SetMaxIdleConns(10)
 
+	println("Database connection established at %s:%s", os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_PORT"))
+
 	return database
 }
