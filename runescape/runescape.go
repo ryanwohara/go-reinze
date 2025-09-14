@@ -1,6 +1,7 @@
 package runescape
 
 import (
+	"database/sql"
 	"fmt"
 
 	"golang.org/x/text/language"
@@ -41,6 +42,6 @@ func Matches(message string) []string {
 // Check OSRS and RS3 news
 // and update the topic of
 // #rshelp appropriately.
-func CheckNews(irccon *irc.Connection) {
-	checkNews(irccon)
+func CheckNews(irccon *irc.Connection, database *sql.DB) {
+	checkNews(irccon, database)
 }

@@ -62,6 +62,8 @@ func heartBeat(irccon *irc.Connection) {
 func handleHeartBeat(irccon *irc.Connection) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	go runescape.RunscapeCronHandler(irccon)
+	database := Db()
+
+	go runescape.RunscapeCronHandler(irccon, database)
 	go cronHandler(irccon)
 }
