@@ -2,6 +2,7 @@ package runescape
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	irc "github.com/thoj/go-ircevent"
@@ -15,4 +16,11 @@ func RunscapeCronHandler(irccon *irc.Connection, database *sql.DB) {
 
 		CheckNews(irccon, database)
 	}
+
+	defer func(database *sql.DB) {
+		err := database.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(database)
 }
