@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"database/sql"
 	"fmt"
 	"go-reinze/runescape"
 	"os"
@@ -52,16 +53,18 @@ func handle(function binFunc, irccon *irc.Connection) {
 }
 
 func heartBeat(irccon *irc.Connection) {
-	handleHeartBeat(irccon)
+	database := Db()
+
+	go handleHeartBeat(irccon, database)
 
 	for range time.Tick(time.Second * 60) {
-		go handleHeartBeat(irccon)
+		go handleHeartBeat(irccon, database)
 	}
 }
 
-func handleHeartBeat(irccon *irc.Connection) {
+func handleHeartBeat(irccon *irc.Connection, database *sql.DB) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	go runescape.RunscapeCronHandler(irccon, Db())
-	go cronHandler(irccon, Db())
+	go runescape.RunscapeCronHandler(irccon, database)
+	go cronHandler(irccon, database)
 }
