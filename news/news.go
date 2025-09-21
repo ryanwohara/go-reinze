@@ -6,10 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/rand/v2"
 	"os"
 	"strconv"
-	"time"
 
 	rss "github.com/mmcdole/gofeed"
 	irc "github.com/thoj/go-ircevent"
@@ -20,7 +18,7 @@ type Config struct {
 	Sources []string `json:"sources"`
 }
 
-func CheckNews(db *sql.DB, irccon *irc.Connection) {
+func CheckNews(db *sql.DB, irccon *irc.Connection, queue chan string) {
 	news_config := os.Getenv("NEWS_CONFIG")
 
 	var struct_config []Config
@@ -49,7 +47,7 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 							Hash:  generateHash(item),
 						}
 
-						processNews(db, irccon, target, feed, news)
+						processNews(db, irccon, target, feed, news, queue)
 					}
 				}
 			}
@@ -59,12 +57,11 @@ func CheckNews(db *sql.DB, irccon *irc.Connection) {
 	}
 }
 
-func processNews(db *sql.DB, irccon *irc.Connection, target string, feed *rss.Feed, news News) {
+func processNews(db *sql.DB, irccon *irc.Connection, target string, feed *rss.Feed, news News, queue chan string) {
 	if !queryExists(db, news) {
 		if writeNewsToDb(db, news) {
-			irccon.SendRawf("PRIVMSG %s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
-			num := rand.IntN(1) + 1
-			time.Sleep(time.Duration(num) * time.Second)
+			msg := fmt.Sprintf("%s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
+			queue <- msg
 		}
 	}
 }
@@ -75,8 +72,8 @@ func generateHash(item *rss.Item) string {
 	return hash
 }
 
-func getHash(to_hash string) string {
-	hash := sha256.Sum256([]byte(to_hash))
+func getHash(toHash string) string {
+	hash := sha256.Sum256([]byte(toHash))
 
 	return hex.EncodeToString(hash[:])[:5]
 }

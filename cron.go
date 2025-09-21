@@ -7,6 +7,6 @@ import (
 	irc "github.com/thoj/go-ircevent"
 )
 
-func cronHandler(irccon *irc.Connection, database *sql.DB) {
-	news.CheckNews(database, irccon)
+func cronHandler(irccon *irc.Connection, database *sql.DB, queue chan string) {
+	news.CheckNews(database, irccon, queue)
 }

@@ -55,16 +55,24 @@ func handle(function binFunc, irccon *irc.Connection) {
 func heartBeat(irccon *irc.Connection) {
 	database := Db()
 
-	go handleHeartBeat(irccon, database)
+	incoming := make(chan string, 100)
 
-	for range time.Tick(time.Second * 60) {
-		go handleHeartBeat(irccon, database)
+	go func() {
+		for msg := range incoming {
+			irccon.SendRawf("PRIVMSG %s", msg)
+			time.Sleep(3 * time.Second)
+		}
+	}()
+
+	for {
+		go handleHeartBeat(irccon, database, incoming)
+		time.Sleep(60 * time.Second)
 	}
 }
 
-func handleHeartBeat(irccon *irc.Connection, database *sql.DB) {
+func handleHeartBeat(irccon *irc.Connection, database *sql.DB, queue chan string) {
 	fmt.Println(time.Now(), "Heartbeat")
 
 	go runescape.RunscapeCronHandler(irccon, database)
-	go cronHandler(irccon, database)
+	go cronHandler(irccon, database, queue)
 }
