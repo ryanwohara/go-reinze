@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	"go-reinze/runescape"
 	"os"
+	"reinze/runescape"
 	"time"
 
 	irc "github.com/thoj/go-ircevent"

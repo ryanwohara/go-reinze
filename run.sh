@@ -9,4 +9,4 @@ set +x
 source .env
 set -x
 
-./go-reinze
+./reinze
