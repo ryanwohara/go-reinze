@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/ryanwohara/reinze/runescape"
+	"reinze/runescape"
+
 	irc "github.com/thoj/go-ircevent"
 )
 

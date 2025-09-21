@@ -3,7 +3,8 @@ package main
 import (
 	"database/sql"
 
-	"github.com/ryanwohara/reinze/news"
+	"reinze/news"
+
 	irc "github.com/thoj/go-ircevent"
 )
 

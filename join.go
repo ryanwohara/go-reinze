@@ -3,7 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/ryanwohara/reinze/greet"
+	"reinze/greet"
+
 	irc "github.com/thoj/go-ircevent"
 )
 

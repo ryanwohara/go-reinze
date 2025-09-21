@@ -7,7 +7,6 @@ require (
 	github.com/dghubble/go-twitter v0.0.0-20221104224141-912508c3888b
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/mmcdole/gofeed v1.3.0
-	github.com/ryanwohara/reinze v0.0.0-20250914171219-6dc53f8d6885
 	github.com/thoj/go-ircevent v0.0.0-20210723090443-73e444401d64
 	golang.org/x/oauth2 v0.31.0
 	golang.org/x/text v0.29.0
