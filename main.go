@@ -17,6 +17,9 @@ func main() {
 
 	ircnick1 := os.Getenv("IRC_NICK")
 	irccon := irc.IRC(ircnick1, ircnick1)
+	if irccon == nil {
+		return
+	}
 	irccon.VerboseCallbackHandler = true
 	irccon.Debug = true
 	irccon.UseTLS = true
