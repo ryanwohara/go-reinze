@@ -38,7 +38,7 @@ func CheckNews(db *sql.DB, queue chan string) {
 			feed, err := feedparser.ParseURL(url)
 
 			if err != nil {
-				fmt.Println("news.go: " + err.Error())
+				fmt.Println("news.go: " + err.Error() + " " + url)
 				continue
 			}
 
