@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	rss "github.com/mmcdole/gofeed"
-	irc "github.com/thoj/go-ircevent"
 )
 
 type Config struct {
@@ -18,58 +17,56 @@ type Config struct {
 	Sources []string `json:"sources"`
 }
 
-func CheckNews(db *sql.DB, irccon *irc.Connection, queue chan string) {
-	news_config := os.Getenv("NEWS_CONFIG")
+func CheckNews(db *sql.DB, queue chan string) {
+	newsConfig := os.Getenv("NEWS_CONFIG")
 
-	var struct_config []Config
+	var structConfig []Config
 
-	err := json.Unmarshal([]byte(news_config), &struct_config)
+	err := json.Unmarshal([]byte(newsConfig), &structConfig)
 
-	if err == nil {
+	if err != nil {
+		fmt.Println("news.go: " + err.Error())
+		return
+	}
 
-		for _, config := range struct_config {
-			target := config.Target
-			sources := config.Sources
+	for _, config := range structConfig {
+		target := config.Target
+		sources := config.Sources
 
-			for _, url := range sources {
-				feedparser := rss.NewParser()
-				feed, err := feedparser.ParseURL(url)
+		for _, url := range sources {
+			feedparser := rss.NewParser()
+			feed, err := feedparser.ParseURL(url)
 
-				if err == nil {
-					for _, item := range feed.Items {
-						if len(item.Link) == 0 {
-							item.Link = item.GUID
-						}
+			if err != nil {
+				fmt.Println("news.go: " + err.Error())
+				continue
+			}
 
-						news := News{
-							Title: item.Title,
-							Url:   item.Link,
-							Hash:  generateHash(item),
-						}
-
-						processNews(db, irccon, target, feed, news, queue)
-					}
+			for _, item := range feed.Items {
+				if len(item.Link) == 0 {
+					item.Link = item.GUID
 				}
+
+				news := News{
+					Title: item.Title,
+					Url:   item.Link,
+					Hash:  generateHash(item),
+				}
+
+				processNews(db, target, feed, news, queue)
 			}
 		}
-	} else {
-		fmt.Println("news.go: " + err.Error())
 	}
 }
 
-func processNews(db *sql.DB, irccon *irc.Connection, target string, feed *rss.Feed, news News, queue chan string) {
-	if !queryExists(db, news) {
-		if writeNewsToDb(db, news) {
-			msg := fmt.Sprintf("%s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
-			queue <- msg
-		}
+func processNews(db *sql.DB, target string, feed *rss.Feed, news News, queue chan string) {
+	if !queryExists(db, news) && writeNewsToDb(db, news) {
+		queue <- fmt.Sprintf("%s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
 	}
 }
 
 func generateHash(item *rss.Item) string {
-	hash := getHash(item.Title + "~" + item.Link)
-
-	return hash
+	return getHash(item.Title + "~" + item.Link)
 }
 
 func getHash(toHash string) string {
@@ -94,18 +91,18 @@ func queryExists(db *sql.DB, news News) bool {
 		return true // we'll return true to prevent messages being sent to the network
 	}
 
-	count_int, err := strconv.Atoi(count)
+	countInt, err := strconv.Atoi(count)
 
 	if err != nil {
 		fmt.Println("news/news.go: " + err.Error())
 		return true
 	}
 
-	return (count_int > 0)
+	return countInt > 0
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {
 	_, err := db.Exec("INSERT INTO `news` (title, url, hash_id) VALUES (?, ?, ?)", news.Title, news.Url, news.Hash)
 
-	return (err == nil)
+	return err == nil
 }

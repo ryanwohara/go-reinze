@@ -77,5 +77,5 @@ func handleHeartBeat(irccon *irc.Connection, database *sql.DB, queue chan string
 	fmt.Println(time.Now(), "Heartbeat")
 
 	go runescape.RunscapeCronHandler(irccon, database)
-	go cronHandler(irccon, database, queue)
+	go cronHandler(database, queue)
 }
