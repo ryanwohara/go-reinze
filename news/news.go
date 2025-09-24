@@ -84,17 +84,17 @@ type News struct {
 func queryExists(db *sql.DB, news News) bool {
 	var count string
 
-	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE url = ?", news.Url).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE hash_id = ?", news.Hash).Scan(&count)
 
 	if err != nil {
-		fmt.Println("news/news.go: " + err.Error())
+		fmt.Println("news/news.go: queryExists QueryRow:" + err.Error())
 		return true // we'll return true to prevent messages being sent to the network
 	}
 
 	countInt, err := strconv.Atoi(count)
 
 	if err != nil {
-		fmt.Println("news/news.go: " + err.Error())
+		fmt.Println("news/news.go: queryExists strconv:" + err.Error())
 		return true
 	}
 
