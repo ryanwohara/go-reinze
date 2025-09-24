@@ -53,7 +53,7 @@ func CheckNews(db *sql.DB, queue chan string) {
 					Hash:  generateHash(item),
 				}
 
-				processNews(db, target, feed, news, queue)
+				go processNews(db, target, feed, news, queue)
 			}
 		}
 	}
