@@ -60,7 +60,7 @@ func CheckNews(db *sql.DB, queue chan string) {
 }
 
 func processNews(db *sql.DB, target string, feed *rss.Feed, news News, queue chan string) {
-	if !queryExists(db, news) && writeNewsToDb(db, news) {
+	if writeNewsToDb(db, news) {
 		queue <- fmt.Sprintf("%s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
 	}
 }
@@ -100,6 +100,10 @@ func queryExists(db *sql.DB, news News) bool {
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {
+	if queryExists(db, news) {
+		return true
+	}
+
 	_, err := db.Exec("INSERT INTO `news` (title, url, hash_id) VALUES (?, ?, ?)", news.Title, news.Url, news.Hash)
 
 	if err != nil {
