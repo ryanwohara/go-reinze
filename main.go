@@ -58,17 +58,17 @@ func handle(function binFunc, irccon *irc.Connection) {
 func heartBeat(irccon *irc.Connection) {
 	database := Db()
 
-	incoming := make(chan string, 100)
+	incoming := make(chan string, 1000)
 
 	go func() {
 		for msg := range incoming {
-			irccon.SendRawf("PRIVMSG %s", msg)
+			irccon.SendRawf("%s", msg)
 			time.Sleep(3 * time.Second)
 		}
 	}()
 
 	for {
-		go handleHeartBeat(irccon, database, incoming)
+		handleHeartBeat(irccon, database, incoming)
 		time.Sleep(60 * time.Second)
 	}
 }
