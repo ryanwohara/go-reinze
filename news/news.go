@@ -84,7 +84,7 @@ type News struct {
 func queryExists(db *sql.DB, news News) bool {
 	var count string
 
-	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE url = '?'", news.Url).Scan(&count)
+	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE url = ?", news.Url).Scan(&count)
 	if err != nil {
 		fmt.Println("news/news.go: queryExists QueryRow:" + err.Error())
 		return true // we'll return true to prevent messages being sent to the network
@@ -104,7 +104,7 @@ func writeNewsToDb(db *sql.DB, news News) bool {
 		return false
 	}
 
-	_, err := db.Exec("INSERT INTO `news` (title, url, hash_id) VALUES ('?', '?', '?')", news.Title, news.Url, news.Hash)
+	_, err := db.Exec("INSERT INTO `news` (title, url, hash_id) VALUES (?, ?, ?)", news.Title, news.Url, news.Hash)
 
 	if err != nil {
 		fmt.Println("news/news.go: writeNewsToDb:" + err.Error())
