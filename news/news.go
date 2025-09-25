@@ -101,7 +101,7 @@ func queryExists(db *sql.DB, news News) bool {
 
 func writeNewsToDb(db *sql.DB, news News) bool {
 	if queryExists(db, news) {
-		return true
+		return false
 	}
 
 	_, err := db.Exec("INSERT INTO `news` (title, url, hash_id) VALUES (?, ?, ?)", news.Title, news.Url, news.Hash)
