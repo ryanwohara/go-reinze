@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 
 	rss "github.com/mmcdole/gofeed"
 )
@@ -82,7 +81,7 @@ type News struct {
 }
 
 func queryExists(db *sql.DB, news News) bool {
-	var count string
+	var count int
 
 	err := db.QueryRow("SELECT COUNT(url) FROM `news` WHERE url = ?", news.Url).Scan(&count)
 	if err != nil {
@@ -90,13 +89,7 @@ func queryExists(db *sql.DB, news News) bool {
 		return true // we'll return true to prevent messages being sent to the network
 	}
 
-	countInt, err := strconv.Atoi(count)
-	if err != nil {
-		fmt.Println("news/news.go: queryExists strconv:" + err.Error())
-		return true
-	}
-
-	return countInt > 0
+	return count > 0
 }
 
 func writeNewsToDb(db *sql.DB, news News) bool {
