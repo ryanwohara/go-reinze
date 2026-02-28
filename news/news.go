@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+        "strings"
 
 	rss "github.com/mmcdole/gofeed"
 )
@@ -18,6 +19,8 @@ type Config struct {
 
 func CheckNews(db *sql.DB, queue chan string) {
 	newsConfig := os.Getenv("NEWS_CONFIG")
+	feedparser := rss.NewParser()
+        feedparser.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
 
 	var structConfig []Config
 
@@ -33,7 +36,6 @@ func CheckNews(db *sql.DB, queue chan string) {
 		sources := config.Sources
 
 		for _, url := range sources {
-			feedparser := rss.NewParser()
 			feed, err := feedparser.ParseURL(url)
 
 			if err != nil {
@@ -48,7 +50,7 @@ func CheckNews(db *sql.DB, queue chan string) {
 
 				news := News{
 					Title: item.Title,
-					Url:   item.Link,
+					Url:   stripGetParams(item.Link),
 					Hash:  generateHash(item),
 				}
 
@@ -62,6 +64,10 @@ func processNews(db *sql.DB, target string, feed *rss.Feed, news News, queue cha
 	if writeNewsToDb(db, news) {
 		queue <- fmt.Sprintf("PRIVMSG %s :[%s] %s [%s]", target, feed.Title, news.Title, news.Url)
 	}
+}
+
+func stripGetParams(url string) string {
+        return strings.Split(url, "?")[0]
 }
 
 func generateHash(item *rss.Item) string {
