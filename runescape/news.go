@@ -34,6 +34,10 @@ func checkNews(irccon *irc.Connection, database *sql.DB) {
 func queryExists(db *sql.DB, rs []string) bool {
 	var hash_id string
 
+    if len(rs) < 3 {
+        return false
+    }
+
 	err := db.QueryRow("SELECT hash_id FROM `rsnews` WHERE hash_id = ?", rs[2]).Scan(&hash_id)
 
 	return (err == nil)

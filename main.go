@@ -76,7 +76,7 @@ func heartBeat(irccon *irc.Connection) {
 
 	for {
 		go runescape.RunscapeCronHandler(irccon, database)
-		time.Sleep(60 * time.Second)
+		time.Sleep(120 * time.Second)
 	}
 }
 
