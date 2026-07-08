@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-        "strings"
+	"strings"
 
 	rss "github.com/mmcdole/gofeed"
 )
@@ -20,7 +20,7 @@ type Config struct {
 func CheckNews(db *sql.DB, queue chan string) {
 	newsConfig := os.Getenv("NEWS_CONFIG")
 	feedparser := rss.NewParser()
-        feedparser.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+	feedparser.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
 
 	var structConfig []Config
 
@@ -67,7 +67,7 @@ func processNews(db *sql.DB, target string, feed *rss.Feed, news News, queue cha
 }
 
 func stripGetParams(url string) string {
-        return strings.Split(url, "?")[0]
+	return strings.Split(url, "?")[0]
 }
 
 func generateHash(item *rss.Item) string {

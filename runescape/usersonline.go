@@ -21,18 +21,26 @@ func getHttpContent(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", resp.StatusCode, resp.Status)
+		log.Printf("status code error: %d %s", resp.StatusCode, resp.Status)
 		return "", errors.New(strconv.Itoa(resp.StatusCode))
 	}
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	return string(body), err
 
 }
 
 func getUsersOnline() []int {
-	body, err := getHttpContent("https://oldschool.runescape.com/")
+	return getUsersOnlineFrom(
+		"https://oldschool.runescape.com/",
+		"https://www.runescape.com/player_count.js?varname=iPlayerCount&callback=jQuery36004811633109689837_1628665230298",
+		"https://secure.runescape.com/m=account-creation-reports/rsusertotal.ws",
+	)
+}
+
+func getUsersOnlineFrom(osrsUrl string, playerCountUrl string, userTotalUrl string) []int {
+	body, err := getHttpContent(osrsUrl)
 
 	if err != nil {
 		return []int{0, 0, 0, 0}
@@ -40,10 +48,14 @@ func getUsersOnline() []int {
 
 	re := regexp.MustCompile("<p class='player-count'>There are currently ([0-9,]+) people playing!</p>")
 	result := re.FindString(string(body))
-	players := strings.Fields(result)[4]
+	fields := strings.Fields(result)
+	if len(fields) < 5 {
+		return []int{0, 0, 0, 0}
+	}
+	players := fields[4]
 	osrs, _ := strconv.Atoi(strings.Replace(players, ",", "", -1))
 
-	body, err = getHttpContent("https://www.runescape.com/player_count.js?varname=iPlayerCount&callback=jQuery36004811633109689837_1628665230298")
+	body, err = getHttpContent(playerCountUrl)
 
 	if err != nil {
 		return []int{0, 0, 0, 0}
@@ -51,11 +63,14 @@ func getUsersOnline() []int {
 
 	re = regexp.MustCompile("([0-9]+)")
 	result2 := re.FindAllString(string(body), 3)
+	if len(result2) < 3 {
+		return []int{0, 0, 0, 0}
+	}
 	players = result2[2]
 	total_online, _ := strconv.Atoi(players)
 	rs3 := total_online - osrs
 
-	body, err = getHttpContent("https://secure.runescape.com/m=account-creation-reports/rsusertotal.ws")
+	body, err = getHttpContent(userTotalUrl)
 
 	if err != nil {
 		return []int{0, 0, 0, 0}

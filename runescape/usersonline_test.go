@@ -1,78 +1,104 @@
-// Copyright 2013 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package runescape
 
 import (
-	"context"
-	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
+const deadUrl = "http://127.0.0.1:1/"
+
+func newsServer(body string) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, body)
+	}))
+}
+
 func Test_GetUsersOnline(t *testing.T) {
-	srv := server()
+	osrs := newsServer("<html><body><p class='player-count'>There are currently 123,456 people playing!</p></body></html>")
+	defer osrs.Close()
 
-	msg := getUsersOnline("127.0.0.1")
+	playerCount := newsServer("jQuery36004811633109689837_1628665230298(210000);")
+	defer playerCount.Close()
 
-	if msg != "0" {
-		t.Errorf("Expecting 0, received %s", msg)
+	userTotal := newsServer(`{"accounts":300000000,"accountsformatted":"300,000,000"}`)
+	defer userTotal.Close()
+
+	players := getUsersOnlineFrom(osrs.URL, playerCount.URL, userTotal.URL)
+
+	expected := []int{123456, 86544, 210000, 300000000}
+	for i := range expected {
+		if players[i] != expected[i] {
+			t.Errorf("Expecting %v, received %v", expected, players)
+			break
+		}
 	}
-
-	msg = getUsersOnline("127.0.0.1")
-
-	if len(msg) > 0 {
-		t.Errorf("Expecting length of 0, received %d", len(msg))
-	}
-
-	serverShutdown(srv)
 }
 
-func Test_GetOsRsPlayerData(t *testing.T) {
-	// request, _ := http.NewRequest("GET", "/", nil)
-	// response := httptest.NewRecorder()
-	// Router().ServeHTTP(response, request)
+func Test_GetUsersOnlineUnreachableHost(t *testing.T) {
+	players := getUsersOnlineFrom(deadUrl, deadUrl, deadUrl)
 
-	srv := server()
+	assertZeros(t, players)
+}
 
-	response := getUsersOnline("http://localhost:12345")
+func Test_GetUsersOnlineNon200(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer srv.Close()
 
-	// body := string(getOsRsPlayerData("http://localhost:12345"))
+	players := getUsersOnlineFrom(srv.URL, srv.URL, srv.URL)
 
-	// if err := srv.Shutdown(context.Background()); err != nil {
-	// 	panic(err) // failure/timeout shutting down the server gracefully
-	// }
+	assertZeros(t, players)
+}
 
-	// if response.Code != 200 {
-	// 	t.Errorf("Expected 200 response, got %d", response.Code)
-	// }
+func Test_GetUsersOnlineNoPlayerCountMarkup(t *testing.T) {
+	osrs := newsServer("<html><body><p>maintenance</p></body></html>")
+	defer osrs.Close()
 
-	fmt.Println(response)
+	players := getUsersOnlineFrom(osrs.URL, deadUrl, deadUrl)
 
-	if response != "<p class='player-count'>There are currently 0 people playing!</p>" {
-		t.Errorf("Expected `<p class='player-count'>There are currently 0 people playing!</p>` players, got `%s`", response)
+	assertZeros(t, players)
+}
+
+func Test_GetUsersOnlineMalformedPlayerCountJs(t *testing.T) {
+	osrs := newsServer("<html><body><p class='player-count'>There are currently 123,456 people playing!</p></body></html>")
+	defer osrs.Close()
+
+	playerCount := newsServer("jQuery(1);")
+	defer playerCount.Close()
+
+	players := getUsersOnlineFrom(osrs.URL, playerCount.URL, deadUrl)
+
+	assertZeros(t, players)
+}
+
+func Test_GetUsersOnlineBadUserTotalJson(t *testing.T) {
+	osrs := newsServer("<html><body><p class='player-count'>There are currently 123,456 people playing!</p></body></html>")
+	defer osrs.Close()
+
+	playerCount := newsServer("jQuery36004811633109689837_1628665230298(210000);")
+	defer playerCount.Close()
+
+	userTotal := newsServer("not json")
+	defer userTotal.Close()
+
+	players := getUsersOnlineFrom(osrs.URL, playerCount.URL, userTotal.URL)
+
+	assertZeros(t, players)
+}
+
+func assertZeros(t *testing.T, players []int) {
+	t.Helper()
+
+	if len(players) != 4 {
+		t.Fatalf("Expecting 4 values, received %v", players)
 	}
 
-	serverShutdown(srv)
-}
-
-func server() *http.Server {
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "<p class='player-count'>There are currently 0 people playing!</p>\n")
-	})
-
-	srv := &http.Server{Addr: ":12345"}
-
-	srv.ListenAndServe()
-
-	return srv
-}
-
-func serverShutdown(srv *http.Server) {
-	if err := srv.Shutdown(context.Background()); err != nil {
-		//
+	for i, p := range players {
+		if p != 0 {
+			t.Errorf("Expecting all zeros, received %v at index %d", players, i)
+		}
 	}
 }

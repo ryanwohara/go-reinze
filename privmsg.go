@@ -22,7 +22,7 @@ func addPrivmsg(irccon *irc.Connection) {
 				if string(input) == "-" {
 					irccon.Notice(event.Nick, output[i])
 				} else if string(input) == "+" {
-					irccon.Privmsgf(event.Arguments[0], output[i])
+					irccon.Privmsg(event.Arguments[0], output[i])
 				}
 			}
 		}
