@@ -15,12 +15,20 @@ import (
 
 func checkNews(irccon *irc.Connection, database *sql.DB) {
 	rs3 := getNews("https://www.runescape.com/community", "h4 a")
+	osrs := getNews("https://oldschool.runescape.com", "h3 a")
+
+	// getNews returns an empty slice when the fetch or scrape fails;
+	// skip this run and let the next cron tick retry.
+	if len(rs3) < 4 || len(osrs) < 4 {
+		log.Printf("news fetch failed (rs3 fields: %d, osrs fields: %d), skipping", len(rs3), len(osrs))
+		return
+	}
+
 	rs3Exists := queryExists(database, rs3)
 	if !rs3Exists {
 		writeNewsToDb(database, rs3)
 	}
 
-	osrs := getNews("https://oldschool.runescape.com", "h3 a")
 	osrsExists := queryExists(database, osrs)
 	if !osrsExists {
 		writeNewsToDb(database, osrs)
@@ -34,9 +42,9 @@ func checkNews(irccon *irc.Connection, database *sql.DB) {
 func queryExists(db *sql.DB, rs []string) bool {
 	var hash_id string
 
-    if len(rs) < 3 {
-        return false
-    }
+	if len(rs) < 3 {
+		return false
+	}
 
 	err := db.QueryRow("SELECT hash_id FROM `rsnews` WHERE hash_id = ?", rs[2]).Scan(&hash_id)
 
@@ -63,7 +71,8 @@ func getNews(url string, element string) []string {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		log.Printf("status code error: %d %s", res.StatusCode, res.Status)
+		return []string{}
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
@@ -79,6 +88,10 @@ func getNews(url string, element string) []string {
 
 		article = []string{title, link}
 	})
+
+	if len(article) < 2 {
+		return []string{}
+	}
 
 	version := getVersion(article[1])
 	article = append(article, generateHash(article), version)
@@ -111,6 +124,10 @@ func getHash(url string) string {
 }
 
 func writeNewsToDb(db *sql.DB, news []string) {
+	if len(news) < 4 {
+		return
+	}
+
 	db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
 }
 
