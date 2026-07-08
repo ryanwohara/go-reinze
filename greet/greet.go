@@ -9,9 +9,27 @@ import (
 )
 
 func Greet(irccon *irc.Connection, channel string, nick string) {
-	greets := strings.Split(os.Getenv("GREET_MESSAGES"), "\n")
+	greet := pickGreet(os.Getenv("GREET_MESSAGES"), nick)
 
-	greet := strings.Replace(greets[rand.Intn(len(greets)-1)], "!nick!", nick, -1)
+	if len(greet) == 0 {
+		return
+	}
 
 	irccon.Action(channel, greet)
+}
+
+func pickGreet(messages string, nick string) string {
+	var greets []string
+
+	for _, greet := range strings.Split(messages, "\n") {
+		if strings.TrimSpace(greet) != "" {
+			greets = append(greets, greet)
+		}
+	}
+
+	if len(greets) == 0 {
+		return ""
+	}
+
+	return strings.Replace(greets[rand.Intn(len(greets))], "!nick!", nick, -1)
 }

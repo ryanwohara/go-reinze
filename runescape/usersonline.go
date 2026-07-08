@@ -3,13 +3,16 @@ package runescape
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
+
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 type TotalPlayers struct {
 	Accounts          int    `json:"accounts"`
@@ -17,7 +20,7 @@ type TotalPlayers struct {
 }
 
 func getHttpContent(url string) (string, error) {
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return "", err
 	}
@@ -26,7 +29,7 @@ func getHttpContent(url string) (string, error) {
 		log.Printf("status code error: %d %s", resp.StatusCode, resp.Status)
 		return "", errors.New(strconv.Itoa(resp.StatusCode))
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	return string(body), err
 
 }

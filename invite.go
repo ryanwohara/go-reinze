@@ -6,8 +6,12 @@ import (
 
 func addInvite(irccon *irc.Connection) {
 	irccon.AddCallback("INVITE", func(event *irc.Event) {
-		if event.Nick == "Dragon" {
-			irccon.Join(event.Arguments[1])
-		}
+		handleInvite(irccon, event)
 	})
+}
+
+func handleInvite(irccon *irc.Connection, event *irc.Event) {
+	if event.Nick == "Dragon" && len(event.Arguments) > 1 {
+		irccon.Join(event.Arguments[1])
+	}
 }

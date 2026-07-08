@@ -32,13 +32,16 @@ func main() {
 
 	exported(irccon)
 
-	go heartBeat(irccon)
-
 	err := irccon.Connect(hostname)
 	if err != nil {
 		fmt.Printf("Err %s", err)
 		return
 	}
+
+	// SendRaw writes to a channel that only exists once Connect
+	// has succeeded, so the heartbeat must not start before it.
+	go heartBeat(irccon)
+
 	irccon.Loop()
 }
 
@@ -62,7 +65,7 @@ func heartBeat(irccon *irc.Connection) {
 
 	go func() {
 		for msg := range incoming {
-			irccon.SendRawf("%s", msg)
+			safely("send queue", func() { irccon.SendRawf("%s", msg) })
 			time.Sleep(3 * time.Second)
 		}
 	}()
@@ -75,7 +78,7 @@ func heartBeat(irccon *irc.Connection) {
 	}()
 
 	for {
-		go runescape.RunscapeCronHandler(irccon, database)
+		go safely("runescape cron", func() { runescape.RunscapeCronHandler(irccon, database) })
 		time.Sleep(120 * time.Second)
 	}
 }
@@ -83,5 +86,17 @@ func heartBeat(irccon *irc.Connection) {
 func handleHeartBeat(irccon *irc.Connection, database *sql.DB, queue chan string) {
 	fmt.Println(time.Now(), "Heartbeat")
 
-	go cronHandler(database, queue)
+	go safely("news cron", func() { cronHandler(database, queue) })
+}
+
+// A panic in any of the cron goroutines would otherwise
+// take down the entire bot.
+func safely(name string, function func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(time.Now(), "recovered panic in", name, ":", r)
+		}
+	}()
+
+	function()
 }

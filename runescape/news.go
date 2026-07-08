@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -62,7 +61,7 @@ func updateTopic(topic string, irccon *irc.Connection) {
 }
 
 func getNews(url string, element string) []string {
-	res, err := http.Get(url)
+	res, err := httpClient.Get(url)
 
 	if err != nil {
 		return []string{}

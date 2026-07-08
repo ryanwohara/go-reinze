@@ -89,6 +89,24 @@ func Test_GetUsersOnlineBadUserTotalJson(t *testing.T) {
 	assertZeros(t, players)
 }
 
+func Test_FormatUsersOnline(t *testing.T) {
+	message := formatUsersOnline([]int{100, 100, 200, 1000})
+
+	expected := "There are currently 100 OSRS players (50.00%) and 100 RS3 players (50.00%) online. (Total: 200) (Total Registered Accounts: 1,000)"
+	if message != expected {
+		t.Errorf("Expecting %q, received %q", expected, message)
+	}
+}
+
+func Test_FormatUsersOnlineOutage(t *testing.T) {
+	message := formatUsersOnline([]int{0, 0, 0, 0})
+
+	expected := "Player counts are currently unavailable."
+	if message != expected {
+		t.Errorf("Expecting %q, received %q", expected, message)
+	}
+}
+
 func assertZeros(t *testing.T, players []int) {
 	t.Helper()
 

@@ -15,23 +15,32 @@ func Db() *sql.DB {
 	var err error
 	var database *sql.DB
 
-	for ok := true; ok; err = nil {
+	// sql.Open only validates the DSN; Ping is what actually dials,
+	// so retry until the database is reachable.
+	for {
 		database, err = sql.Open("mysql", dsn)
 
-		if err != nil {
-			fmt.Println("Error connecting to database:", err)
-			time.Sleep(time.Second)
-			continue
+		if err == nil {
+			err = database.Ping()
 		}
 
-		break
+		if err == nil {
+			break
+		}
+
+		if database != nil {
+			database.Close()
+		}
+
+		fmt.Println("Error connecting to database:", err)
+		time.Sleep(time.Second)
 	}
 
 	database.SetConnMaxLifetime(time.Second * 5)
 	database.SetMaxOpenConns(10)
 	database.SetMaxIdleConns(10)
 
-	println("Database connection established at %s:%s", os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_PORT"))
+	fmt.Printf("Database connection established at %s:%s\n", os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_PORT"))
 
 	return database
 }

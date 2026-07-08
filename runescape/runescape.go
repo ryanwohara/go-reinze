@@ -18,13 +18,21 @@ func GetUsersOnline() []string {
 
 	fmt.Println(players)
 
-	p := message.NewPrinter(language.English)
-
-	message := p.Sprintf("There are currently %d OSRS players (%.2f%%%%) and %d RS3 players (%.2f%%%%) online. (Total: %d) (Total Registered Accounts: %d)", players[0], float64(players[0])/float64(players[2])*100, players[1], float64(players[1])/float64(players[2])*100, players[2], players[3])
+	message := formatUsersOnline(players)
 
 	fmt.Println([]string{message})
 
 	return []string{message}
+}
+
+func formatUsersOnline(players []int) string {
+	if len(players) < 4 || players[2] == 0 {
+		return "Player counts are currently unavailable."
+	}
+
+	p := message.NewPrinter(language.English)
+
+	return p.Sprintf("There are currently %d OSRS players (%.2f%%) and %d RS3 players (%.2f%%) online. (Total: %d) (Total Registered Accounts: %d)", players[0], float64(players[0])/float64(players[2])*100, players[1], float64(players[1])/float64(players[2])*100, players[2], players[3])
 }
 
 // Matches what `runescape`
