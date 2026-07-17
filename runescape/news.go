@@ -122,12 +122,37 @@ func getHash(url string) string {
 	return hex.EncodeToString(hash[:])[:5]
 }
 
+// The rsnews table caps title at VARCHAR(255) and url at VARCHAR(125);
+// MySQL strict mode rejects longer values outright. Dedup is by hash,
+// which is computed from the full values, so clamping here is safe.
+func clampNews(news []string) []string {
+	if len(news) < 4 {
+		return news
+	}
+
+	return []string{truncateRunes(news[0], 255), truncateRunes(news[1], 125), news[2], news[3]}
+}
+
+func truncateRunes(s string, max int) string {
+	runes := []rune(s)
+	if len(runes) <= max {
+		return s
+	}
+
+	return string(runes[:max])
+}
+
 func writeNewsToDb(db *sql.DB, news []string) {
 	if len(news) < 4 {
 		return
 	}
 
-	db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
+	news = clampNews(news)
+
+	_, err := db.Exec("INSERT INTO `rsnews` (title, url, hash_id, runescape) VALUES (?, ?, ?, ?)", news[0], news[1], news[2], news[3])
+	if err != nil {
+		log.Printf("writeNewsToDb: %s", err)
+	}
 }
 
 type News struct {

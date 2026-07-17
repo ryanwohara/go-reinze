@@ -47,20 +47,36 @@ func CheckNews(db *sql.DB, queue chan string) {
 			}
 
 			for _, item := range feed.Items {
-				if len(item.Link) == 0 {
-					item.Link = item.GUID
-				}
-
-				news := News{
-					Title: item.Title,
-					Url:   stripGetParams(item.Link),
-					Hash:  generateHash(item),
-				}
-
-				processNews(db, target, feed, news, queue)
+				processNews(db, target, feed, newsFromItem(item), queue)
 			}
 		}
 	}
+}
+
+// The news table caps title and url at VARCHAR(255); MySQL strict mode
+// rejects longer values outright, so clamp them here — before the dedup
+// query — so the stored row and the existence check always agree.
+const maxColumnLength = 255
+
+func newsFromItem(item *rss.Item) News {
+	if len(item.Link) == 0 {
+		item.Link = item.GUID
+	}
+
+	return News{
+		Title: truncateRunes(item.Title, maxColumnLength),
+		Url:   truncateRunes(stripGetParams(item.Link), maxColumnLength),
+		Hash:  generateHash(item),
+	}
+}
+
+func truncateRunes(s string, max int) string {
+	runes := []rune(s)
+	if len(runes) <= max {
+		return s
+	}
+
+	return string(runes[:max])
 }
 
 func processNews(db *sql.DB, target string, feed *rss.Feed, news News, queue chan string) {
